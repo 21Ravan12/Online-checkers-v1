@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkers - Ana Ekran</title>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script defer>
+    <script defer>//hizli mac meselesini hall et
         const socket = io("http://192.168.0.158:3002");
         let activeRooms = [];
         let activeRoomId = null;
@@ -19,6 +19,7 @@
                 console.error("[ERROR] Oda ID veya renk eksik!");
                 return;
             }
+
             activeRoomId = roomId;
             debugInfo("Sending joinRoom event for room", { roomId, color });
             socket.emit("joinRoom", { roomId, color });
@@ -81,325 +82,520 @@
             socket.emit("move", moveData);
         }
     </script>
-    <style id="checkerStyles">
-body {
-    font-family: 'Arial', sans-serif;
-    text-align: center;
-    background-color: #1a1a1a; /* Koyu arka plan */
-    color: #ddd; /* Açık gri metin */
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    display: flex;
-    justify-content: center; /* Yatayda ortalar */
-    align-items: center; /* Dikeyde ortalar */
-    height: 100vh; /* Sayfa yüksekliğini tam olarak kullan */
-}
-
-.container {
-    display: none;
-}
-.game-container {
-    width: 90%;
-    padding: 20px;
-    background-color: #2c2f38; /* Koyu gri kutu arka planı */
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); /* Daha belirgin gölge */
-    font-size: 1rem;
-}
-.board-container{
-    display: flex;
-}
-.board {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(8, 1fr);
-    gap: 0;
-    width: 100%;
-    height: 100%;
-    margin: 20px auto;
-    border: 3px solid #444;
-    border-radius: 10px;
-    overflow: hidden;
-    max-width: 480px;
-    max-height: 480px;
-    aspect-ratio: 1; /* Yükseklik ve genişlik oranını eşit tut */
-}
-.button {
-            display: block;
-            width: 100%;
-            margin: 10px 0px;
-            padding: 12px;
-            font-size: 18px;
-            color: white;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-.square {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.3s ease;
-}
-
-.square:nth-child(odd) {
-    background-color: #555; /* Koyu mavi tonları */
-}
-
-.square:nth-child(even) {
-    background-color: #444; /* Koyu gri tonları */
-}
-
-.square.black-square {
-    background-color: #222; /* Siyah kare */
-}
-
-.square.white-square {
-    background-color: #333; /* Daha koyu beyaz kare */
-}
-
-.square:hover {
-    background-color: #ffd700;
-    cursor: pointer;
-}
-
-.white-piece, .black-piece {
-    width: 80%;
-    height: 80%;
-    border-radius: 50%;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease;
-}
-
-.white-piece:hover, .black-piece:hover {
-    transform: scale(1.1);
-}
-
-.white-piece {
-    background-color: #fff;
-    border: 2px solid #ccc;
-}
-
-.black-piece {
-    background-color: #222;
-    border: 2px solid #444;
-}
-
-.highlight {
-    background-color: rgba(255, 255, 0, 0.6);
-}
-
-.highlight-capture {
-    background-color: rgba(255, 0, 0, 0.6);
-}
-
-.queen {
-    border: 4px solid gold;
-    width: 80%;
-    height: 80%;
-    font-size: 20px;
-}
-
-@media screen and (max-width: 600px) {
-    .game-container {
-        width: 95%;
-        height: 90%;
-        display: flex;
-        align-items: center; 
-        flex-direction: column;
-    }
-
-    .board-container{
-        display: flex;
-        height: 100%;
-        width: 100%;
-        align-items: center; 
-    }
-
-    .board {
-        width: 100%;
-        height: 100%;
-        max-width: 350px;
-        max-height: 350px;
-    }
-    
-    .white-piece, .black-piece {
-        width: 75%; /* Küçük ekranlarda taş boyutlarını küçültüyoruz */
-        height: 75%;
-    }
-    .queen {
-        width: 75%;
-        height: 75%;
-    }
-}
-
-    </style>
-    <style id="mainMenuStyles">
+    <style id="checkerStyles">/* Genel Reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
         }
-
+        
+        /* Arkaplan ve Genel Stil */
         body {
+            text-align: center;
+            background: linear-gradient(135deg, #1a1a1a, #23272a);
+            color: #ddd;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: linear-gradient(135deg, #000000, #050a13);
+            animation: gradientBG 5s infinite alternate;
         }
-
-        .game-container{
-            display: none;
+        
+        /* Arka plan geçiş animasyonu */
+        @keyframes gradientBG {
+            0% { background: linear-gradient(135deg, #1a1a1a, #23272a); }
+            100% { background: linear-gradient(135deg, #1c1f26, #2b2f35); }
         }
-
+        
+        /* Ana Konteyner */
         .container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.219);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            width: 300px;
             display: none;
         }
+        
+        .game-container {
+            position: relative;
+            width: 90%;
+            padding: 25px;
+            background: rgba(44, 47, 56, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            font-size: 1.1rem;
+            transition: all 0.4s ease-in-out;
+        }
+        
+        /* Hover Efekti */
+        .game-container:hover {
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Oyun Tahtası */
+        .board-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 100%;
+            max-width: 480px;
+            max-height: 480px;
+            border: 3px solid #444;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            background: #161b22;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+        }
+        
+        /* Kareler */
+        .square {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s ease-in-out;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        /* Açık ve koyu kareler */
+        .square:nth-child(odd) {
+            background: #2c2f38;
+        }
+        .square:nth-child(even) {
+            background: #23272a;
+        }
+        
+        /* Kareye hover efekti */
+        .square:hover {
+            background: #3d4149;
+        }
+        
+        /* Düğmeler */
+        .button {
+    position: absolute; /* Mutlak konumlandırma */
+    top: 10px; /* Üstten 10px boşluk */
+    left: 10px; /* Soldan 10px boşluk */
+    padding: 10px 15px;
+    font-size: 18px;
+    color: white;
+    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: all 0.3s ease-in-out;
+    z-index: 10; /* Butonun diğer öğelerin üstünde olmasını sağlar */
+}
+
+        
+        /* Butona hover efekti */
+        .button:hover {
+            background: linear-gradient(90deg, #ff4b2b, #ff416c);
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(255, 75, 43, 0.4);
+        }
+
+/* Siyah ve Beyaz Kareler */
+.square.black-square {
+    background: linear-gradient(135deg, #1a1a1a, #222);
+}
+
+.square.white-square {
+    background: linear-gradient(135deg, #2c2f38, #3a3f4b);
+}
+
+/* Kare Hover Efekti */
+.square:hover {
+    background: radial-gradient(circle, #ffd700 30%, #e6c300 100%);
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+/* Taşlar */
+.white-piece, .black-piece {
+    width: 75%;
+    height: 75%;
+    border-radius: 50%;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Taşlara Hover Efekti */
+.white-piece:hover, .black-piece:hover {
+    transform: scale(1.15);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Beyaz Taş */
+.white-piece {
+    background: radial-gradient(circle, #fff 40%, #eaeaea 100%);
+    border: 3px solid #bbb;
+}
+
+/* Siyah Taş */
+.black-piece {
+    background: radial-gradient(circle, #222 40%, #111 100%);
+    border: 3px solid #444;
+}
+
+/* Hareket Vurgulama */
+.highlight {
+    background: radial-gradient(circle, rgba(255, 255, 0, 0.7) 40%, rgba(255, 215, 0, 0.4) 100%);
+    animation: pulse 1s infinite alternate;
+}
+
+/* Yenebilir Taş Vurgulama */
+.highlight-capture {
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.7) 40%, rgba(200, 0, 0, 0.5) 100%);
+    animation: pulse 1s infinite alternate;
+}
+
+/* Kraliçe Taşı */
+.queen {
+    border: 4px solid gold;
+    width: 75%;
+    height: 75%;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: gold;
+    font-weight: bold;
+    text-shadow: 1px 1px 5px rgba(255, 215, 0, 0.7);
+}
+
+/* Hafif Parlama Efekti */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+}
+@media screen and (max-width: 600px) {
+    .game-container {
+        width: 95%;
+        height: 90%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 10px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+    }
+
+    .board-container {
+        display: flex;
+        height: auto;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .board {
+        width: 90%;
+        max-width: 360px;
+        max-height: 3460px;
+        aspect-ratio: 1; /* Tahtanın oranını koru */
+        border-radius: 8px;
+        border: 2px solid #555;
+    }
+
+    .square {
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .square:hover {
+        transform: scale(1.05);
+    }
+
+    .white-piece, .black-piece {
+        width: 70%; /* Daha küçük taşlar */
+        height: 70%;
+    }
+
+    .queen {
+        width: 70%;
+        height: 70%;
+        font-size: 18px;
+        text-shadow: 1px 1px 4px rgba(255, 215, 0, 0.5);
+    }
+}
+
+
+    </style>
+    <style id="mainMenuStyles">
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #000000, #16213E);
+    animation: gradientBG 6s infinite alternate;
+}
+
+/* Arkaplan animasyonu */
+@keyframes gradientBG {
+    0% {
+        background: linear-gradient(135deg, #000000, #16213E);
+    }
+    100% {
+        background: linear-gradient(135deg, #1B1B1B, #1A2980);
+    }
+}
+
+.game-container {
+    display: none;
+}
+
+/* Oyun giriş ekranı */
+.container {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 40px;
+    border-radius: 18px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    width: 350px;
+    transition: all 0.4s ease-in-out;
+    display: none;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Container içine hafif ışık yansımaları */
+.container::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05), transparent);
+    transform: rotate(25deg);
+}
+
+/* Container hover efekti */
+.container:hover {
+    transform: scale(1.05);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* Input alanları */
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Input'a odaklanınca efekt */
+input:focus {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Butonlar */
+button {
+    margin-top: 15px;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Butona ışıklı hover efekti */
+button::before {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent);
+    transform: rotate(25deg);
+    transition: all 0.4s ease-in-out;
+}
+
+button:hover::before {
+    top: 0;
+    left: 0;
+}
+
+button:hover {
+    background: linear-gradient(90deg, #ff4b2b, #ff416c);
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(255, 75, 43, 0.5);
+}
+
+/* Butona tıklama efekti */
+button:active {
+    transform: scale(0.95);
+}
+
+
 
         .active {
             display: block;
         }
 
-        h1 {
-            margin-bottom: 20px;
-            color: #ecf0f1;
-            font-size: 28px;
-        }
+/* Başlık */
+h1 {
+    margin-bottom: 20px;
+    color: #ecf0f1;
+    font-size: 32px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 10px rgba(255, 255, 255, 0.2);
+}
 
-        .button {
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-            padding: 12px;
-            font-size: 18px;
-            color: white;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        .button:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: scale(1.05);
-        }
-
-        .game-list {
+/* Oyun Listesi */
+.game-list {
     width: 100%;
     margin: 10px auto;
     max-height: 400px;
     min-height: 300px;
     overflow-y: auto;
-    border: 2px solid #444;
-    border-radius: 8px;
-    padding: 10px;
-    background-color: #222;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.6);
     color: #fff;
-        }
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease-in-out;
+}
 
-        .game-list div {
-          padding: 10px;
-          margin: 5px 0;
-          border-bottom: 1px solid #555;
-        }
-        /* 🔄 Yenile Butonu */
-        .game-refresh-btn {
-    background-color: #ffa500;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    margin: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-        }
+.game-list:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.02);
+}
 
-        .game-refresh-btn:hover {
-    background-color: #cc8400;
-        }
-
-        /* 🎮 Oyuna Katıl Butonu */
-        .game-join-btn {
-    background-color: #008CBA;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    margin: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-        }
-
-        .game-join-btn:hover {
-    background-color: #005f7f;
-        }
-
-        /* ⬅ Geri Butonu */
-        .game-back-btn {
-    background-color: #f44336;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    margin: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-        }
-
-        .game-back-btn:hover {
-    background-color: #c73022;
-        }
-
-        /* ⚙ Oyun Ayarları Butonu */
-.game-settings-btn {
-    background-color: #ffa500;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    margin: 5px;
-    cursor: pointer;
-    font-size: 16px;
+.game-list div {
+    padding: 12px;
+    margin: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: background 0.3s ease-in-out;
     border-radius: 5px;
 }
 
+.game-list div:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Buton Stilleri */
+button {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent);
+    transform: rotate(25deg);
+    transition: all 0.4s ease-in-out;
+}
+
+button:hover::before {
+    top: 0;
+    left: 0;
+}
+
+button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* 🔄 Yenile Butonu */
+.game-refresh-btn {
+    background: linear-gradient(90deg, #ffa500, #ff7700);
+}
+.game-refresh-btn:hover {
+    background: linear-gradient(90deg, #ff7700, #ffa500);
+}
+
+/* 🎮 Oyuna Katıl Butonu */
+.game-join-btn {
+    background: linear-gradient(90deg, #008CBA, #005f7f);
+}
+.game-join-btn:hover {
+    background: linear-gradient(90deg, #005f7f, #008CBA);
+}
+
+/* ⬅ Geri Butonu */
+.game-back-btn {
+    background: linear-gradient(90deg, #f44336, #c73022);
+}
+.game-back-btn:hover {
+    background: linear-gradient(90deg, #c73022, #f44336);
+}
+
+/* ⚙ Oyun Ayarları Butonu */
+.game-settings-btn {
+    background: linear-gradient(90deg, #ffa500, #cc7a00);
+}
 .game-settings-btn:hover {
-    background-color: #cc7a00;
+    background: linear-gradient(90deg, #cc7a00, #ffa500);
 }
 
 /* 🚀 Başlat Butonu */
 .game-start-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    margin: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
+    background: linear-gradient(90deg, #4CAF50, #3d8b40);
+}
+.game-start-btn:hover {
+    background: linear-gradient(90deg, #3d8b40, #4CAF50);
 }
 
-.game-start-btn:hover {
-    background-color: #3d8b40;
-}
+/* Taraf Seçim Alanı */
 .side-selection {
     display: flex;
     align-items: center;
@@ -408,7 +604,7 @@ body {
     margin: 15px 0;
     font-size: 18px;
     font-weight: bold;
-    color: #fff; /* Yazı rengi */
+    color: #fff;
 }
 
 .side-selection label {
@@ -418,13 +614,14 @@ body {
 .side-selection select {
     padding: 8px 12px;
     font-size: 16px;
-    border: 2px solid #ccc;
+    border: 2px solid #888;
     border-radius: 5px;
-    background-color: #222;
+    background-color: rgba(0, 0, 0, 0.6);
     color: #fff;
     cursor: pointer;
     outline: none;
-    transition: 0.3s;
+    transition: all 0.3s ease-in-out;
+    backdrop-filter: blur(6px);
 }
 
 .side-selection select:hover {
@@ -434,11 +631,16 @@ body {
 .side-selection select:focus {
     border-color: #ffcc00;
 }
+
+/* Seçilen Oda */
 .selected-room {
-    background-color: #4CAF50; /* Yeşil arka plan */
+    background: linear-gradient(90deg, #4CAF50, #3d8b40);
     color: white;
     font-weight: bold;
+    border-radius: 5px;
+    padding: 8px;
 }
+
 
     </style>
 </head>
