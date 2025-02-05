@@ -3,89 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dama Oyunu</title>
+    <title>Checkers Game</title>
+    
+    <!-- Include Socket.IO library for real-time communication -->
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script defer src="js/socket.js"></script>
+    
+    <!-- Stylesheets for different parts of the game -->
     <link rel="stylesheet" id="checkerStyles" href="assets/styles/checker.css">
     <link rel="stylesheet" id="mainMenuStyles" href="assets/styles/main.css">
 </head>
 <body>
     
+    <!-- Main Menu -->
     <div class="container active" id="menu">
         <h1>Checkers</h1>
-        <button class="button" onclick="switchMenu('offlineMenu')">Ofline</button>
+        <button class="button" onclick="switchMenu('offlineMenu')">Offline</button>
         <button class="button" onclick="switchMenu('onlineMenu')">Online</button>
-        <button class="button" onclick="switchMenu('settingsMenu')">Ayarlar</button>
-        <button class="button" onclick="exitGame()">Çıkış</button>
+        <button class="button" onclick="switchMenu('settingsMenu')">Settings</button>
+        <button class="button" onclick="exitGame()">Exit</button>
     </div>
 
+    <!-- Offline Mode Menu -->
     <div class="container" id="offlineMenu">
-        <h1>Oyun Modu Seç</h1>
-        <button class="button" onclick="playWithBot()">Bota Karşı</button>
-        <button class="button" onclick="playTwoPlayer()">İki Kişilik</button>
-        <button class="button" onclick="switchMenu('menu')">Geri</button>
+        <h1>Select Game Mode</h1>
+        <button class="button" onclick="playWithBot()">Against Bot</button>
+        <button class="button" onclick="playTwoPlayer()">Two Player</button>
+        <button class="button" onclick="switchMenu('menu')">Back</button>
     </div>
 
+    <!-- Online Mode Menu -->
     <div class="container" id="onlineMenu">
-        <h1>Online Oyun</h1>
-        <button class="button" onclick="switchMenu('quickMatchMenu')">Hızlı Maç</button>
-        <button class="button" onclick="switchMenu('gameListMenu')">Oyun Listesi</button>
-        <button class="button" onclick="switchMenu('createGameMenu')">Oyun Oluştur</button>
-        <button class="button" onclick="switchMenu('menu')">Geri</button>
+        <h1>Online Game</h1>
+        <button class="button" onclick="switchMenu('quickMatchMenu')">Quick Match</button>
+        <button class="button" onclick="switchMenu('gameListMenu')">Game List</button>
+        <button class="button" onclick="switchMenu('createGameMenu')">Create Game</button>
+        <button class="button" onclick="switchMenu('menu')">Back</button>
     </div>
     
+    <!-- Quick Match Menu -->
     <div class="container" id="quickMatchMenu">
-        <h1>Hızlı Maç</h1>
-        <button class="button" onclick="quickMatch()">Maç Bul</button>
-        <button class="button" onclick="switchMenu('onlineMenu')">Geri</button>
+        <h1>Quick Match</h1>
+        <button class="button" onclick="quickMatch()">Find Match</button>
+        <button class="button" onclick="switchMenu('onlineMenu')">Back</button>
     </div>
     
+    <!-- Game List Menu -->
     <div class="container" id="gameListMenu">
-        <h1>Oyun Listesi</h1>
+        <h1>Game List</h1>
         
         <div id="gameListContainer" class="game-list">
-            <!-- Oyunlar buraya eklenecek -->
+            <!-- Available games will be listed here -->
         </div>
         
         <div class="button-container">
-            <button class="game-refresh-btn" onclick="refreshGameList()">🔄 Yenile</button>
-            <button class="game-join-btn" onclick="joinGameFromList()">🎮 Oyuna Katıl</button>
-            <button class="game-back-btn" onclick="switchMenu('onlineMenu')">⬅ Geri</button>
+            <button class="game-refresh-btn" onclick="refreshGameList()">🔄 Refresh</button>
+            <button class="game-join-btn" onclick="joinGameFromList()">🎮 Join Game</button>
+            <button class="game-back-btn" onclick="switchMenu('onlineMenu')">⬅ Back</button>
         </div>
     </div>       
     
+    <!-- Create Game Menu -->
     <div class="container" id="createGameMenu">
-        <h1>Oyun Oluştur</h1>
+        <h1>Create Game</h1>
     
         <div class="side-selection">
-            <label for="side">Tarafını Seç:</label>
+            <label for="side">Choose Your Side:</label>
             <select id="side">
-                <option value="white">⚪ Beyaz</option>
-                <option value="black">⚫ Siyah</option>
+                <option value="white">⚪ White</option>
+                <option value="black">⚫ Black</option>
             </select>
         </div>
     
         <div class="button-container">
-            <button class="game-start-btn" onclick="startNewGame()">🚀 Başlat</button>
-            <button class="game-back-btn" onclick="switchMenu('onlineMenu')">⬅ Geri</button>
+            <button class="game-start-btn" onclick="startNewGame()">🚀 Start</button>
+            <button class="game-back-btn" onclick="switchMenu('onlineMenu')">⬅ Back</button>
         </div>
     </div>    
     
+    <!-- Settings Menu -->
     <div class="container" id="settingsMenu">
-        <h1>Ayarlar</h1>
-        <button class="button" onclick="adjustSound()">Ses Ayarları</button>
-        <button class="button" onclick="adjustGraphics()">Grafik Ayarları</button>
-        <button class="button" onclick="switchMenu('menu')">Geri</button>
+        <h1>Settings</h1>
+        <button class="button" onclick="adjustSound()">Sound Settings</button>
+        <button class="button" onclick="adjustGraphics()">Graphics Settings</button>
+        <button class="button" onclick="switchMenu('menu')">Back</button>
     </div>
 
+    <!-- Game Board Container -->
     <div class="game-container">
-        <button class="button" onclick="switchMenuFromGameContainer()">Geri</button>
+        <button class="button" onclick="switchMenuFromGameContainer()">Back</button>
         <div class="board-container">
-        <div id="winner-display"></div>
-        <div class="board" id="board"></div>
+            <div id="winner-display"></div>
+            <div class="board" id="board"></div>
         </div>
     </div>
 
+    <!-- JavaScript Files -->
     <script src="js/mainScripts.js"></script>
     <script src="js/board.js"></script>
     <script src="js/game.js"></script>
