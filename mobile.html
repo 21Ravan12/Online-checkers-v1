@@ -23,6 +23,7 @@
             activeRoomId = roomId;
             debugInfo("Sending joinRoom event for room", { roomId, color });
             socket.emit("joinRoom", { roomId, color });
+            return true;
         }
     
         function getRoomList() {
@@ -32,9 +33,11 @@
     
         function getColor() {
             socket.emit("getColor",selectedRoomId);
+            
         }
 
         socket.on("yourColor", (color) => {
+            debugInfo("Assigned color", color);
             yourColor=color;
         });
 
@@ -57,9 +60,9 @@
             }
         });
     
-        socket.on("roomsList", (rooms) => {
-            debugInfo("Active rooms list received", rooms);
-            activeRooms = rooms;
+        socket.on("roomsList", (roomInfo) => {
+            activeRooms = roomInfo;
+            debugInfo(activeRooms);
             updateGameListUI(); 
         });
     
@@ -751,32 +754,38 @@ button:active {
             resetGame('white');
         }
 
-        function quickMatch() {
-        refreshGameList();    
-        gameMode = 'online';
-        // Eğer boş bir oda bulunamazsa yeni bir oda oluştur
-        if (activeRooms.length === 0) {
-        alert('Boş oda yok')
-        return;
-        }
-        // Boş odalar arasında dön ve ilk uygun olanına oyuncuyu ekle
-        for (let i = 0; i < activeRooms.length; i++) {
-        let roomId = activeRooms[i];
-        if (joinGame(roomId)) {
-            return; // Odaya katılınca fonksiyondan çık
-        }
-        } 
-        }
+        async function quickMatch() {
+    await getRoomList();
+    gameMode = 'online';
 
-        function joinGameFromQuickMatch() {
-        gameMode='online';
-        let roomId = selectedRoomId; 
-        console.log("Seçilen taraf:", yourColor);
-        joinGame(roomId,yourColor);
-        document.getElementById('mainMenuStyles').disabled = true;
-        document.getElementById('checkerStyles').disabled = false;
-        resetGame(yourColor);
+    if (activeRooms.length === 0) {
+        alert('Boş oda yok');
+        return;
+    }
+
+    for (let i = 0; i < activeRooms.length; i++) {
+    selectedRoomId = activeRooms[i]['roomId']; // roomId zaten string olduğu için direkt kullanıyoruz.
+
+    console.log("Odaya bağlanmaya çalışılıyor, roomId:", selectedRoomId);
+
+    try {
+        yourColor=activeRooms[i]['nextColor'];
+
+        if (joinGame(selectedRoomId, yourColor)) {
+            console.log(`Başarıyla ${selectedRoomId} odasına katıldın!`);
+            document.getElementById('mainMenuStyles').disabled = true;
+            document.getElementById('checkerStyles').disabled = false;
+            resetGame(yourColor);
+            return; // Başarıyla katıldıysa fonksiyondan çık
+        } else {
+            console.log(`joinGame başarısız oldu: roomId=${selectedRoomId}, color=${yourColor}`);
         }
+    } catch (error) {
+        console.error(`Renk alınırken hata oluştu: ${error}`);
+    }
+}
+
+}
 
         function startNewGame() {
         gameMode='online';
@@ -824,10 +833,10 @@ button:active {
     activeRooms.forEach(room => {
         const roomDiv = document.createElement("div");
         roomDiv.classList.add("game-room"); // CSS için sınıf ekleyebilirsin
-        roomDiv.textContent = room; // Oda adını yaz
+        roomDiv.textContent = room['roomId']; // Oda adını yaz
 
         // Odaya tıklayınca seçme özelliği ekleyelim
-        roomDiv.addEventListener("click", () => selectFromList(room, roomDiv));
+        roomDiv.addEventListener("click", () => selectFromList(room['roomId'], roomDiv));
 
         gameListContainer.appendChild(roomDiv);
     });
@@ -928,7 +937,7 @@ return boardArray;
 
     </script>
 
-    <script id="oflineCheckerCode">
+    <script id="onlineCheckerCode">
 let selectedPiece = null;
 let currentPlayer = "white";
 let whiteCapturedPieces = 0;
