@@ -4,7 +4,6 @@ let whiteCapturedPieces = 0;
 let blackCapturedPieces = 0;
 
 
-//bazen normal taslarda queen olarak etiketlene biliyor
 function hasMandatoryCapture() {
     if (!currentPlayer) {
         console.error("Error: currentPlayer is not defined.");
@@ -103,6 +102,7 @@ function handleSquareClick(event) {
             return;
         }
 
+        if (gameMode==='offline') {
         // Queen taşını kontrol et
         if (selectedPiece.classList.contains("queen")) {
             // Queen'in hareketi (herhangi bir yönde birden fazla kare gitme)
@@ -112,14 +112,12 @@ function handleSquareClick(event) {
                 !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) &&
                 !square.hasChildNodes()
             ) {
-                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
                 movePiece(square, true);
             } 
             // Taş yeme hareketi (queen için de geçerli)
             else if (
                 isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol)
             ) {
-                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
                 handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
             } 
             // Geçersiz hamle
@@ -136,7 +134,6 @@ function handleSquareClick(event) {
                 Math.abs(targetCol - selectedCol) === 1 &&
                 !square.hasChildNodes()
             ) {
-                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
                 movePiece(square, true);
             } else if (
                 square.classList.contains("black-square") &&
@@ -145,11 +142,74 @@ function handleSquareClick(event) {
                 Math.abs(targetCol - selectedCol) === 1 &&
                 !square.hasChildNodes()
             ) {
-                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
                 movePiece(square, true);
             }
             // Taş yeme hareketi (diagonal 2 kare ilerleme)
             else if (
+                Math.abs(targetRow - selectedRow) === 2 &&
+                Math.abs(targetCol - selectedCol) === 2 &&
+                isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
+            ) {
+                handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
+            } 
+            // Geçersiz hamle
+            else {
+                debugInfo("Invalid move.");
+                clearSelection();
+            }
+        }    
+    }else if (gameMode==='online') {
+        if (selectedPiece.classList.contains("queen")) {
+            // Queen'in hareketi (herhangi bir yönde birden fazla kare gitme)
+            if (
+                square.classList.contains("black-square") &&
+                selectedPiece.classList.contains(`${yourColor}-piece`) &&
+                isValidQueenMove(selectedRow, selectedCol, targetRow, targetCol) &&
+                !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) &&
+                !square.hasChildNodes()
+            ) {
+                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
+                movePiece(square, true);
+            } 
+            // Taş yeme hareketi (queen için de geçerli)
+            else if (
+                isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) &&
+                selectedPiece.classList.contains(`${yourColor}-piece`) 
+            ) {
+                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
+                handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
+            } 
+            // Geçersiz hamle
+            else {
+                debugInfo("Invalid move.");
+                clearSelection();
+            }
+        } else {
+            // Normal hareket (diagonal 1 kare ilerleme)
+            if (
+                square.classList.contains("black-square") &&
+                selectedPiece.classList.contains("white-piece")&&
+                selectedPiece.classList.contains(`${yourColor}-piece`) &&
+                targetRow - selectedRow === -1 &&
+                Math.abs(targetCol - selectedCol) === 1 &&
+                !square.hasChildNodes()
+            ) {
+                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
+                movePiece(square, true);
+            } else if (
+                square.classList.contains("black-square") &&
+                selectedPiece.classList.contains("black-piece")&&
+                selectedPiece.classList.contains(`${yourColor}-piece`) &&
+                targetRow - selectedRow === 1 &&
+                Math.abs(targetCol - selectedCol) === 1 &&
+                !square.hasChildNodes()
+            ) {
+                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
+                movePiece(square, true);
+            } 
+            // Taş yeme hareketi (diagonal 2 kare ilerleme)
+            else if (
+                selectedPiece.classList.contains(`${yourColor}-piece`) &&
                 Math.abs(targetRow - selectedRow) === 2 &&
                 Math.abs(targetCol - selectedCol) === 2 &&
                 isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
@@ -163,6 +223,7 @@ function handleSquareClick(event) {
                 clearSelection();
             }
         }
+    }
     }       
     // Eğer bir taş seçili değilse ve hareket yapılmak isteniyorsa
     else {
@@ -185,7 +246,6 @@ function handleSquareClick(event) {
             square.classList.contains("black-square") &&
             !square.hasChildNodes()
         ) {
-            movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
             movePiece(square, true);
         } 
         else {
@@ -233,21 +293,12 @@ function handleOpponentMove(fromRow, fromCol, toRow, toCol) {
         // Normal hareket (diagonal 1 kare ilerleme)
         if (
             squareTo.classList.contains("black-square") &&
-            selectedPiece.classList.contains("white-piece") &&
-            toRow - fromRow === -1 &&
+            Math.abs(toRow - fromRow) === 1 &&
             Math.abs(toCol - fromCol) === 1 &&
             !squareTo.hasChildNodes()
         ) {
             movePiece(squareTo, true);
-        } else if (
-            squareTo.classList.contains("black-square") &&
-            selectedPiece.classList.contains("black-piece") &&
-            toRow - fromRow === 1 &&
-            Math.abs(toCol - fromCol) === 1 &&
-            !squareTo.hasChildNodes()
-        ) {
-            movePiece(squareTo, true);
-        }
+        } 
         // Taş yeme hareketi (diagonal 2 kare ilerleme)
         else if (
             Math.abs(toRow - fromRow) === 2 &&
@@ -434,7 +485,7 @@ function isValidCapture(selectedRow, selectedCol, targetRow, targetCol) {
 
     return opponentPiece;
 }
-// debugInfo fonksiyonu
+
 function debugInfo(message) {
     console.log(`DEBUG INFO: ${message}`);
 }
@@ -539,14 +590,14 @@ function clearSelection() {
     selectedPiece = null;
 }
 
-function resetGame() {
+function resetGame(color) {
     whiteCapturedPieces = 0;
     blackCapturedPieces = 0;
     selectedPiece = null;
     currentPlayer = "white";
     debugInfo("Game reset.");
     document.getElementById("board").innerHTML = "";
-    createBoard();
+    createBoard(color);
     addSquareEventListeners();
 }
 
@@ -559,3 +610,5 @@ function addSquareEventListeners() {
 document.addEventListener("DOMContentLoaded", () => {
     addSquareEventListeners();
 });
+
+
