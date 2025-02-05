@@ -1,53 +1,55 @@
+/* Universal Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins', sans-serif; /* Using Poppins font for the entire page */
 }
 
-/* Arkaplan ve Genel Stil */
+/* Background and General Styling */
 body {
     text-align: center;
-    background: linear-gradient(135deg, #1a1a1a, #23272a);
-    color: #ddd;
+    background: linear-gradient(135deg, #1a1a1a, #23272a); /* Background gradient */
+    color: #ddd; /* Light text color */
     margin: 0;
     padding: 0;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    animation: gradientBG 5s infinite alternate;
+    height: 100vh; /* Full viewport height */
+    animation: gradientBG 5s infinite alternate; /* Background gradient animation */
 }
 
-/* Arka plan geçiş animasyonu */
+/* Background Transition Animation */
 @keyframes gradientBG {
     0% { background: linear-gradient(135deg, #1a1a1a, #23272a); }
     100% { background: linear-gradient(135deg, #1c1f26, #2b2f35); }
 }
 
-/* Ana Konteyner */
+/* Main Container */
 .container {
-    display: none;
+    display: none; /* Hidden container by default */
 }
 
+/* Game Container */
 .game-container {
     position: relative;
     width: 90%;
     padding: 25px;
-    background: rgba(44, 47, 56, 0.9);
+    background: rgba(44, 47, 56, 0.9); /* Semi-transparent background */
     border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* Shadow effect */
     font-size: 1.1rem;
     transition: all 0.4s ease-in-out;
 }
 
-/* Hover Efekti */
+/* Hover Effect for Game Container */
 .game-container:hover {
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* Increase shadow on hover */
 }
 
-/* Oyun Tahtası */
+/* Board Container */
 .board-container {
     display: flex;
     justify-content: center;
@@ -55,22 +57,23 @@ body {
     margin-top: 15px;
 }
 
+/* Board Styling */
 .board {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(8, 1fr);
+    grid-template-columns: repeat(8, 1fr); /* 8 columns for the board */
+    grid-template-rows: repeat(8, 1fr); /* 8 rows for the board */
     width: 100%;
     max-width: 480px;
     max-height: 480px;
-    border: 3px solid #444;
+    border: 3px solid #444; /* Border for the board */
     border-radius: 12px;
     overflow: hidden;
-    aspect-ratio: 1;
-    background: #161b22;
-    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+    aspect-ratio: 1; /* Maintain square aspect ratio */
+    background: #161b22; /* Dark background */
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6); /* Inner shadow */
 }
 
-/* Kareler */
+/* Square Styling */
 .square {
     width: 100%;
     height: 100%;
@@ -82,171 +85,173 @@ body {
     font-weight: bold;
 }
 
-/* Açık ve koyu kareler */
+/* Odd Squares Styling */
 .square:nth-child(odd) {
-    background: #2c2f38;
+    background: #2c2f38; /* Darker color for odd squares */
 }
+
+/* Even Squares Styling */
 .square:nth-child(even) {
-    background: #23272a;
+    background: #23272a; /* Lighter color for even squares */
 }
 
-/* Kareye hover efekti */
+/* Hover Effect for Squares */
 .square:hover {
-    background: #3d4149;
+    background: #3d4149; /* Change background color on hover */
 }
 
-/* Düğmeler */
+/* Button Styling */
 .button {
-position: absolute; /* Mutlak konumlandırma */
-top: 10px; /* Üstten 10px boşluk */
-left: 10px; /* Soldan 10px boşluk */
-padding: 10px 15px;
-font-size: 18px;
-color: white;
-background: linear-gradient(90deg, #ff416c, #ff4b2b);
-border: none;
-border-radius: 10px;
-cursor: pointer;
-font-weight: bold;
-letter-spacing: 1px;
-transition: all 0.3s ease-in-out;
-z-index: 10; /* Butonun diğer öğelerin üstünde olmasını sağlar */
+    position: absolute; /* Absolute positioning for button */
+    top: 10px; /* 10px from the top */
+    left: 10px; /* 10px from the left */
+    padding: 10px 15px;
+    font-size: 18px;
+    color: white;
+    background: linear-gradient(90deg, #ff416c, #ff4b2b); /* Gradient background */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: all 0.3s ease-in-out;
+    z-index: 10; /* Ensures button is on top of other elements */
 }
 
-
-/* Butona hover efekti */
+/* Hover Effect for Button */
 .button:hover {
-    background: linear-gradient(90deg, #ff4b2b, #ff416c);
-    transform: scale(1.05);
-    box-shadow: 0 6px 15px rgba(255, 75, 43, 0.4);
+    background: linear-gradient(90deg, #ff4b2b, #ff416c); /* Reverse gradient on hover */
+    transform: scale(1.05); /* Slight scale increase */
+    box-shadow: 0 6px 15px rgba(255, 75, 43, 0.4); /* Shadow effect */
 }
 
-/* Siyah ve Beyaz Kareler */
+/* Black and White Squares */
 .square.black-square {
-background: linear-gradient(135deg, #1a1a1a, #222);
+    background: linear-gradient(135deg, #1a1a1a, #222); /* Darker gradient for black square */
 }
 
 .square.white-square {
-background: linear-gradient(135deg, #2c2f38, #3a3f4b);
+    background: linear-gradient(135deg, #2c2f38, #3a3f4b); /* Lighter gradient for white square */
 }
 
-/* Kare Hover Efekti */
+/* Square Hover Effect */
 .square:hover {
-background: radial-gradient(circle, #ffd700 30%, #e6c300 100%);
-cursor: pointer;
-transition: background 0.3s ease-in-out;
+    background: radial-gradient(circle, #ffd700 30%, #e6c300 100%); /* Gold radial hover effect */
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
 }
 
-/* Taşlar */
+/* Pieces Styling */
 .white-piece, .black-piece {
-width: 75%;
-height: 75%;
-border-radius: 50%;
-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-display: flex;
-align-items: center;
-justify-content: center;
+    width: 75%;
+    height: 75%;
+    border-radius: 50%;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Taşlara Hover Efekti */
+/* Hover Effect for Pieces */
 .white-piece:hover, .black-piece:hover {
-transform: scale(1.15);
-box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+    transform: scale(1.15); /* Slight scale increase on hover */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5); /* Shadow effect */
 }
 
-/* Beyaz Taş */
+/* White Piece Styling */
 .white-piece {
-background: radial-gradient(circle, #fff 40%, #eaeaea 100%);
-border: 3px solid #bbb;
+    background: radial-gradient(circle, #fff 40%, #eaeaea 100%); /* White gradient */
+    border: 3px solid #bbb;
 }
 
-/* Siyah Taş */
+/* Black Piece Styling */
 .black-piece {
-background: radial-gradient(circle, #222 40%, #111 100%);
-border: 3px solid #444;
+    background: radial-gradient(circle, #222 40%, #111 100%); /* Dark gradient */
+    border: 3px solid #444;
 }
 
-/* Hareket Vurgulama */
+/* Highlight Move Styling */
 .highlight {
-background: radial-gradient(circle, rgba(255, 255, 0, 0.7) 40%, rgba(255, 215, 0, 0.4) 100%);
-animation: pulse 1s infinite alternate;
+    background: radial-gradient(circle, rgba(255, 255, 0, 0.7) 40%, rgba(255, 215, 0, 0.4) 100%); /* Yellow highlight */
+    animation: pulse 1s infinite alternate; /* Pulsing effect */
 }
 
-/* Yenebilir Taş Vurgulama */
+/* Highlight Capture Styling */
 .highlight-capture {
-background: radial-gradient(circle, rgba(255, 0, 0, 0.7) 40%, rgba(200, 0, 0, 0.5) 100%);
-animation: pulse 1s infinite alternate;
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.7) 40%, rgba(200, 0, 0, 0.5) 100%); /* Red highlight for capture */
+    animation: pulse 1s infinite alternate; /* Pulsing effect */
 }
 
-/* Kraliçe Taşı */
+/* Queen Piece Styling */
 .queen {
-border: 4px solid gold;
-width: 75%;
-height: 75%;
-font-size: 22px;
-display: flex;
-align-items: center;
-justify-content: center;
-color: gold;
-font-weight: bold;
-text-shadow: 1px 1px 5px rgba(255, 215, 0, 0.7);
+    border: 4px solid gold; /* Gold border for queen piece */
+    width: 75%;
+    height: 75%;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: gold;
+    font-weight: bold;
+    text-shadow: 1px 1px 5px rgba(255, 215, 0, 0.7); /* Glowing text effect */
 }
 
-/* Hafif Parlama Efekti */
+/* Light Pulse Animation */
 @keyframes pulse {
-0% { transform: scale(1); }
-100% { transform: scale(1.1); }
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
 }
+
+/* Responsive Design for Small Screens */
 @media screen and (max-width: 600px) {
-.game-container {
-width: 95%;
-height: 90%;
-display: flex;
-align-items: center;
-justify-content: center;
-flex-direction: column;
-padding: 10px;
-box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-border-radius: 12px;
-}
+    .game-container {
+        width: 95%;
+        height: 90%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 10px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+    }
 
-.board-container {
-display: flex;
-height: auto;
-width: 100%;
-align-items: center;
-justify-content: center;
-flex-direction: column;
-}
+    .board-container {
+        display: flex;
+        height: auto;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
 
-.board {
-width: 90%;
-max-width: 360px;
-max-height: 3460px;
-aspect-ratio: 1; /* Tahtanın oranını koru */
-border-radius: 8px;
-border: 2px solid #555;
-}
+    .board {
+        width: 90%;
+        max-width: 360px;
+        max-height: 3460px;
+        aspect-ratio: 1; /* Keep board ratio intact */
+        border-radius: 8px;
+        border: 2px solid #555;
+    }
 
-.square {
-transition: background-color 0.3s ease, transform 0.2s ease;
-}
+    .square {
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth background and scaling */
+    }
 
-.square:hover {
-transform: scale(1.05);
-}
+    .square:hover {
+        transform: scale(1.05); /* Slightly enlarge on hover */
+    }
 
-.white-piece, .black-piece {
-width: 70%; /* Daha küçük taşlar */
-height: 70%;
-}
+    .white-piece, .black-piece {
+        width: 70%; /* Smaller pieces for small screens */
+        height: 70%;
+    }
 
-.queen {
-width: 70%;
-height: 70%;
-font-size: 18px;
-text-shadow: 1px 1px 4px rgba(255, 215, 0, 0.5);
+    .queen {
+        width: 70%; /* Smaller queen */
+        height: 70%;
+        font-size: 18px;
+        text-shadow: 1px 1px 4px rgba(255, 215, 0, 0.5); /* Adjusted text shadow */
+    }
 }
-}
-
