@@ -1,4 +1,6 @@
+// Initialize a socket connection to the default server (the same URL as the client)
 const socket = io("");
+
 let activeRooms = [];
 let activeRoomId = null;
 
