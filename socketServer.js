@@ -76,16 +76,44 @@ io.on("connection", (socket) => {
   });
 
   socket.on("getRooms", () => {
-    const emptyRooms = Object.keys(rooms).filter(room => rooms[room].players.length === 1);
-    socket.emit("roomsList", emptyRooms);
-  });
+    const roomInfo = Object.keys(rooms)
+        .filter(room => rooms[room].players.length === 1) // Sadece 1 oyuncusu olan odaları filtrele
+        .map(room => {
+            let nextColor = rooms[room].players[0].color === "white" ? "black" : "white";
+            return { roomId: room,nextColor: nextColor }; // Oda ID'si ve sıradaki oyuncunun rengi
+        });
+
+    socket.emit("roomsList", roomInfo);
+});
+
   
   
 
-  socket.on("getColor", (roomId) => {
-    let color = rooms[roomId].players[0].color === "white" ? "black" : "white";
+socket.on("getColor", (roomId) => {
+    // roomId geçerli mi?
+    if (!roomId || !rooms[roomId]) {
+        socket.emit("error", "Geçersiz oda ID");
+        return;
+    }
+
+    // Oda içinde oyuncular var mı?
+    if (!rooms[roomId].players || rooms[roomId].players.length === 0) {
+        socket.emit("error", "Odaya kayıtlı oyuncu bulunamadı");
+        return;
+    }
+
+    // İlk oyuncunun rengi tanımlı mı?
+    let firstPlayer = rooms[roomId].players[0];
+    if (!firstPlayer.color || (firstPlayer.color !== "white" && firstPlayer.color !== "black")) {
+        socket.emit("error", "Oyuncunun rengi geçersiz");
+        return;
+    }
+
+    // Renk atamasını yap
+    let color = firstPlayer.color === "white" ? "black" : "white";
     socket.emit("yourColor", color);
-  });
+});
+
 
   socket.on("disconnect", () => {
     if (socket.currentRoom && rooms[socket.currentRoom]) {
