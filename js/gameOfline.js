@@ -4,7 +4,6 @@ let whiteCapturedPieces = 0;
 let blackCapturedPieces = 0;
 
 
-//bazen normal taslarda queen olarak etiketlene biliyor
 function hasMandatoryCapture() {
     if (!currentPlayer) {
         console.error("Error: currentPlayer is not defined.");
@@ -66,7 +65,6 @@ function handleSquareClick(event) {
     let square = event.target;
     let piece = square.querySelector(".white-piece, .black-piece");
 
-    // Eğer bir taşın kendisine tıklanırsa, onun ebeveyn karesini al
     if (square.classList.contains("white-piece") || square.classList.contains("black-piece")) {
         piece = square;
         square = piece.parentElement;
@@ -74,20 +72,17 @@ function handleSquareClick(event) {
 
     debugInfo(`Square clicked. Target is: ${square}, Piece: ${piece}`);
 
-    // Eğer oyuncu kendi taşını seçiyorsa
     if (piece && piece.classList.contains(`${currentPlayer}-piece`)) {
         if (selectedPiece) selectedPiece.classList.remove("selected");
         selectedPiece = piece;
         selectedPiece.classList.add("selected");
         debugInfo(`${currentPlayer} player selected a piece.`);
     } 
-    // Seçili taşı tekrar tıklarsa seçimi kaldır
     else if (selectedPiece === piece) {
         selectedPiece.classList.remove("selected");
         selectedPiece = null;
         debugInfo("Selection cleared.");
     } 
-    // Eğer taş seçiliyse ve bir hamle yapılmak isteniyorsa
     else if (selectedPiece && !piece) {
         const selectedRow = parseInt(selectedPiece.parentElement.dataset.row);
         const selectedCol = parseInt(selectedPiece.parentElement.dataset.col);
@@ -96,16 +91,13 @@ function handleSquareClick(event) {
 
         debugInfo(`Attempting move. Selected: (${selectedRow}, ${selectedCol}), Target: (${targetRow}, ${targetCol})`);
 
-        // Eğer oyuncunun zorunlu taş yeme hamlesi varsa ve normal hareket yapmaya çalışıyorsa engelle
         if (hasMandatoryCapture() && !isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
             && !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol)) {
             debugInfo("You must capture a piece if possible!");
             return;
         }
 
-        // Queen taşını kontrol et
         if (selectedPiece.classList.contains("queen")) {
-            // Queen'in hareketi (herhangi bir yönde birden fazla kare gitme)
             if (
                 square.classList.contains("black-square") &&
                 isValidQueenMove(selectedRow, selectedCol, targetRow, targetCol) &&
@@ -114,19 +106,16 @@ function handleSquareClick(event) {
             ) {
                 movePiece(square, true);
             } 
-            // Taş yeme hareketi (queen için de geçerli)
             else if (
                 isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol)
             ) {
                 handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
             } 
-            // Geçersiz hamle
             else {
                 debugInfo("Invalid move.");
                 clearSelection();
             }
         } else {
-            // Normal hareket (diagonal 1 kare ilerleme)
             if (
                 square.classList.contains("black-square") &&
                 selectedPiece.classList.contains("white-piece")&&
@@ -144,7 +133,6 @@ function handleSquareClick(event) {
             ) {
                 movePiece(square, true);
             }
-            // Taş yeme hareketi (diagonal 2 kare ilerleme)
             else if (
                 Math.abs(targetRow - selectedRow) === 2 &&
                 Math.abs(targetCol - selectedCol) === 2 &&
@@ -152,14 +140,12 @@ function handleSquareClick(event) {
             ) {
                 handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
             } 
-            // Geçersiz hamle
             else {
                 debugInfo("Invalid move.");
                 clearSelection();
             }
         }
     }       
-    // Eğer bir taş seçili değilse ve hareket yapılmak isteniyorsa
     else {
         const selectedRow = parseInt(selectedPiece.parentElement.dataset.row);
         const selectedCol = parseInt(selectedPiece.parentElement.dataset.col);
@@ -168,14 +154,12 @@ function handleSquareClick(event) {
 
         debugInfo(`Attempting move. Selected: (${selectedRow}, ${selectedCol}), Target: (${targetRow}, ${targetCol})`);
 
-        // Eğer oyuncunun zorunlu taş yeme hamlesi varsa ve normal hareket yapmaya çalışıyorsa engelle
         if (hasMandatoryCapture() && !isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
             && !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol)) {
             debugInfo("You must capture a piece if possible!");
             return;
         }
 
-        // Normal hareket (diagonal 1 kare ilerleme)
         if (
             square.classList.contains("black-square") &&
             !square.hasChildNodes()
@@ -211,7 +195,7 @@ function isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) {
         const currentSquare = document.querySelector(`[data-row='${currentRow}'][data-col='${currentCol}']`);
         const currentPiece = currentSquare?.querySelector(".white-piece, .black-piece");
         if (currentPiece) {
-            if (capturedPiece) return false; // İkinci bir taş varsa geçersiz
+            if (capturedPiece) return false; 
             capturedPiece = currentPiece;
             middleSquare = currentSquare;
         }
@@ -227,7 +211,7 @@ function isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) {
 }
 
 function captureQueenPiece(capturedPiece) {
-    capturedPiece.remove(); // Taşı kaldır
+    capturedPiece.remove(); 
     if (capturedPiece.classList.contains("white-piece")) {
         blackCapturedPieces++;
         debugInfo(`Black player captured a white piece. Total captured: ${blackCapturedPieces}`);
@@ -243,13 +227,12 @@ function movePiece(targetSquare, switchTurn = true) {
     targetSquare.appendChild(selectedPiece);
     selectedPiece.classList.remove("selected");
 
-    // **Queen olma kontrolü**
     const targetRow = parseInt(targetSquare.dataset.row);
     if (
         (currentPlayer === "white" && targetRow === 1) ||
         (currentPlayer === "black" && targetRow === 8)
     ) {
-        selectedPiece.classList.add("queen"); // Queen sınıfını ekliyoruz
+        selectedPiece.classList.add("queen"); 
         debugInfo(`${currentPlayer} piece became a queen!`);
     }
 
@@ -302,7 +285,6 @@ function handleCapture(selectedRow, selectedCol, targetRow, targetCol, targetSqu
         if (capturedPiece && capturedPiece.classList.contains(`${currentPlayer === "white" ? "black" : "white"}-piece`)) {
             captureQueenPiece(capturedPiece);
     
-            // **Taşı hareket ettir**
             movePiece(targetSquare, false);
 
             if (!hasMoreCapturesQueen(targetSquare)) {
@@ -325,15 +307,12 @@ function handleCapture(selectedRow, selectedCol, targetRow, targetCol, targetSqu
 function isValidCapture(selectedRow, selectedCol, targetRow, targetCol) {
     debugInfo(`Starting isValidCapture function for selected square: (${selectedRow}, ${selectedCol}) and target square: (${targetRow}, ${targetCol})`);
 
-    // Orta kareyi tam sayı olarak hesapla (yuvarlama işlemi)
     const middleRow = Math.floor((selectedRow + targetRow) / 2);
     const middleCol = Math.floor((selectedCol + targetCol) / 2);
     debugInfo(`Calculated middle square: (${middleRow}, ${middleCol})`);
 
-    // Orta kareyi seç
     const middleSquare = document.querySelector(`[data-row='${middleRow}'][data-col='${middleCol}']`);
     
-    // Eğer ortada bir kare yoksa, geçerli bir taş alma hareketi değildir
     if (!middleSquare) {
         debugInfo("Middle square not found. Invalid capture.");
         return false;
@@ -341,7 +320,6 @@ function isValidCapture(selectedRow, selectedCol, targetRow, targetCol) {
 
     debugInfo("Middle square found.");
 
-    // Ortadaki karede bir taş var mı kontrol et
     const capturedPiece = middleSquare.querySelector(".white-piece, .black-piece");
     
     if (capturedPiece) {
@@ -350,7 +328,6 @@ function isValidCapture(selectedRow, selectedCol, targetRow, targetCol) {
         debugInfo("No captured piece found in the middle square.");
     }
 
-    // Eğer ortadaki karede taş varsa, taşın rakip oyuncuya ait olup olmadığını kontrol et
     const opponentPiece = capturedPiece && capturedPiece.classList.contains(`${currentPlayer === "white" ? "black" : "white"}-piece`);
     
     if (opponentPiece) {
@@ -361,7 +338,7 @@ function isValidCapture(selectedRow, selectedCol, targetRow, targetCol) {
 
     return opponentPiece;
 }
-// debugInfo fonksiyonu
+
 function debugInfo(message) {
     console.log(`DEBUG INFO: ${message}`);
 }
@@ -389,14 +366,14 @@ function hasMoreCaptures(pieceSquare) {
         const midSquare = document.querySelector(`[data-row='${midRow}'][data-col='${midCol}']`);
         const targetSquare = document.querySelector(`[data-row='${targetRow}'][data-col='${targetCol}']`);
 
-        if (!midSquare || !targetSquare) return false; // Oyun tahtasının dışına çıkmamak için
+        if (!midSquare || !targetSquare) return false; 
 
         const midPiece = midSquare.querySelector(".white-piece, .black-piece");
-        if (!midPiece) return false; // Arada taş yoksa, atlayamaz
+        if (!midPiece) return false; 
 
-        if (!midPiece.classList.contains(currentPlayer === "white" ? "black-piece" : "white-piece")) return false; // Yanlış taş mı?
+        if (!midPiece.classList.contains(currentPlayer === "white" ? "black-piece" : "white-piece")) return false; 
 
-        return targetSquare.children.length === 0; // Hedef kare boş olmalı
+        return targetSquare.children.length === 0; 
     });
 }
 
@@ -416,7 +393,7 @@ function hasMoreCapturesQueen(pieceSquare) {
 
     return directions.some(({ row: dr, col: dc }) => {
         let step = 1;
-        let foundOpponent = false; // Rakip taşı bulduk mu?
+        let foundOpponent = false; 
 
         while (true) {
             const midRow = row + dr * step;
@@ -424,30 +401,26 @@ function hasMoreCapturesQueen(pieceSquare) {
             const targetRow = row + dr * (step + 1);
             const targetCol = col + dc * (step + 1);
 
-            // Tahtanın dışına çıkıyorsa dur
             if (midRow < 1 || midRow > 8 || midCol < 1 || midCol > 8) break;
             if (targetRow < 1 || targetRow > 8 || targetCol < 1 || targetCol > 8) break;
 
             const midSquare = document.querySelector(`[data-row='${midRow}'][data-col='${midCol}']`);
             const targetSquare = document.querySelector(`[data-row='${targetRow}'][data-col='${targetCol}']`);
 
-            if (!midSquare || !targetSquare) break; // Kare yoksa dur
+            if (!midSquare || !targetSquare) break; 
 
             const midPiece = midSquare.querySelector(".white-piece, .black-piece");
 
             if (midPiece) {
-                // Eğer daha önce rakip taş bulduysak ve yeni bir taş geldiyse, artık ilerleyemeyiz
                 if (foundOpponent) break;
 
-                // Eğer rakip taşsa, ileride boşluk olup olmadığını kontrol et
                 if (midPiece.classList.contains(currentPlayer === "white" ? "black-piece" : "white-piece")) {
-                    foundOpponent = true; // Rakip taş bulundu
+                    foundOpponent = true; 
                 } else {
-                    break; // Dost taşı gördüysek ilerleyemeyiz
+                    break; 
                 }
             }
 
-            // Eğer rakip taşı bulduktan sonra ileride boş bir kare varsa, geçerli hamle
             if (foundOpponent && targetSquare.children.length === 0) return true;
 
             step++;
