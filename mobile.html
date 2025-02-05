@@ -1,231 +1,252 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkers - Ana Ekran</title>
+    <title>Checkers Game</title>
+    
+    <!-- Include Socket.IO library for real-time communication -->
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script defer>//hizli mac meselesini hall et
-        const socket = io("");
-        let activeRooms = [];
-        let activeRoomId = null;
-    
-        function debugInfo(message, data) {
-            console.log(`[DEBUG] ${message}:`, data);
-        }
-    
-        function joinGame(roomId, color) {
-            if (!roomId || !color) {
-                console.error("[ERROR] Oda ID veya renk eksik!");
-                return;
-            }
+    <script defer>
+const socket = io("http://192.168.0.158:3002");
+let activeRooms = [];
+let activeRoomId = null;
 
-            activeRoomId = roomId;
-            debugInfo("Sending joinRoom event for room", { roomId, color });
-            socket.emit("joinRoom", { roomId, color });
-            return true;
-        }
-    
-        function getRoomList() {
-            debugInfo("Requesting room list", {});
-            socket.emit("getRooms");
-        }
-    
-        function getColor() {
-            socket.emit("getColor",selectedRoomId);
-            
-        }
+// Function to log debug information
+function debugInfo(message, data) {
+    console.log(`[DEBUG] ${message}:`, data);
+}
 
-        socket.on("yourColor", (color) => {
-            debugInfo("Assigned color", color);
-            yourColor=color;
-        });
+// Function to join a game room with a specified color
+function joinGame(roomId, color) {
+    if (!roomId || !color) {
+        console.error("[ERROR] Room ID or color is missing!");
+        return;
+    }
 
-        socket.on("assignColor", (color) => {
-            debugInfo("Assigned color", color);
+    activeRoomId = roomId;
+    debugInfo("Sending joinRoom event for room", { roomId, color });
+    socket.emit("joinRoom", { roomId, color });
+    return true;
+}
 
-        });
-    
-        socket.on("error", (message) => {
-            console.error(`[ERROR] ${message}`);
-        });
-    
-        // Rakibin hamlesini dinle
-        socket.on("move", (move) => {
-            if (move && move.from && move.to) {
-                debugInfo("Opponent move received", move);
-                handleOpponentMove(move.from.row, move.from.col, move.to.row, move.to.col);
-            } else {
-                console.error("[ERROR] Invalid move data received", move);
-            }
-        });
-    
-        socket.on("roomsList", (roomInfo) => {
-            activeRooms = roomInfo;
-            debugInfo(activeRooms);
-            updateGameListUI(); 
-        });
-    
-        socket.on("gameStart", () => {
-            debugInfo("Game started", {});
-        });
-    
-        socket.on("playerCount", (count) => {
-            debugInfo("Player count updated", count);
-        });
-    
-        // Taş hareketini gönder
-        function movePieceSocket(fromRow, fromCol, toRow, toCol) {
-            if (!activeRoomId) {
-                console.error("[ERROR] Oyun odası seçilmemiş!");
-                return;
-            }
-            const moveData = { roomId: activeRoomId, from: { row: fromRow, col: fromCol }, to: { row: toRow, col: toCol } };
-            debugInfo("Sending move data", moveData);
-            socket.emit("move", moveData);
-        }
+function leaveRoom() {
+    socket.emit("leaveRoom");
+}
+
+// Function to request the list of available rooms
+function getRoomList() {
+    debugInfo("Requesting room list", {});
+    socket.emit("getRooms");
+}
+
+// Function to request assigned color for the player
+function getColor() {
+    socket.emit("getColor", selectedRoomId);
+}
+
+// Event listener for receiving assigned color from the server
+socket.on("yourColor", (color) => {
+    debugInfo("Assigned color", color);
+    yourColor = color;
+});
+
+// Event listener for color assignment
+socket.on("assignColor", (color) => {
+    debugInfo("Assigned color", color);
+});
+
+// Event listener for errors received from the server
+socket.on("error", (message) => {
+    console.error(`[ERROR] ${message}`);
+});
+
+// Event listener for receiving the opponent's move
+socket.on("move", (move) => {
+    if (move && move.from && move.to) {
+        debugInfo("Opponent move received", move);
+        handleOpponentMove(move.from.row, move.from.col, move.to.row, move.to.col);
+    } else {
+        console.error("[ERROR] Invalid move data received", move);
+    }
+});
+
+// Event listener for receiving the list of available rooms
+socket.on("roomsList", (roomInfo) => {
+    activeRooms = roomInfo;
+    debugInfo("Updated room list", activeRooms);
+    updateGameListUI(); 
+});
+
+// Event listener for when the game starts
+socket.on("gameStart", () => {
+    debugInfo("Game started", {});
+});
+
+// Event listener for updating the player count
+socket.on("playerCount", (count) => {
+    debugInfo("Player count updated", count);
+});
+
+// Function to send a move action to the server
+function movePieceSocket(fromRow, fromCol, toRow, toCol) {
+    if (!activeRoomId) {
+        console.error("[ERROR] No game room selected!");
+        return;
+    }
+    const moveData = { roomId: activeRoomId, from: { row: fromRow, col: fromCol }, to: { row: toRow, col: toCol } };
+    debugInfo("Sending move data", moveData);
+    socket.emit("move", moveData);
+}
+
     </script>
-    <style id="checkerStyles">/* Genel Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        /* Arkaplan ve Genel Stil */
-        body {
-            text-align: center;
-            background: linear-gradient(135deg, #1a1a1a, #23272a);
-            color: #ddd;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            animation: gradientBG 5s infinite alternate;
-        }
-        
-        /* Arka plan geçiş animasyonu */
-        @keyframes gradientBG {
-            0% { background: linear-gradient(135deg, #1a1a1a, #23272a); }
-            100% { background: linear-gradient(135deg, #1c1f26, #2b2f35); }
-        }
-        
-        /* Ana Konteyner */
-        .container {
-            display: none;
-        }
-        
-        .game-container {
-            position: relative;
-            width: 90%;
-            padding: 25px;
-            background: rgba(44, 47, 56, 0.9);
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            font-size: 1.1rem;
-            transition: all 0.4s ease-in-out;
-        }
-        
-        /* Hover Efekti */
-        .game-container:hover {
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-        }
-        
-        /* Oyun Tahtası */
-        .board-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 15px;
-        }
-        
-        .board {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr);
-            width: 100%;
-            max-width: 480px;
-            max-height: 480px;
-            border: 3px solid #444;
-            border-radius: 12px;
-            overflow: hidden;
-            aspect-ratio: 1;
-            background: #161b22;
-            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
-        }
-        
-        /* Kareler */
-        .square {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.3s ease-in-out;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        
-        /* Açık ve koyu kareler */
-        .square:nth-child(odd) {
-            background: #2c2f38;
-        }
-        .square:nth-child(even) {
-            background: #23272a;
-        }
-        
-        /* Kareye hover efekti */
-        .square:hover {
-            background: #3d4149;
-        }
-        
-        /* Düğmeler */
-        .button {
-    position: absolute; /* Mutlak konumlandırma */
-    top: 10px; /* Üstten 10px boşluk */
-    left: 10px; /* Soldan 10px boşluk */
+    
+    <!-- Stylesheets for different parts of the game -->
+    <style id="checkerStyles">
+/* Universal Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif; /* Using Poppins font for the entire page */
+}
+
+/* Background and General Styling */
+body {
+    text-align: center;
+    background: linear-gradient(135deg, #1a1a1a, #23272a); /* Background gradient */
+    color: #ddd; /* Light text color */
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    animation: gradientBG 5s infinite alternate; /* Background gradient animation */
+}
+
+/* Background Transition Animation */
+@keyframes gradientBG {
+    0% { background: linear-gradient(135deg, #1a1a1a, #23272a); }
+    100% { background: linear-gradient(135deg, #1c1f26, #2b2f35); }
+}
+
+/* Main Container */
+.container {
+    display: none; /* Hidden container by default */
+}
+
+/* Game Container */
+.game-container {
+    position: relative;
+    width: 90%;
+    padding: 25px;
+    background: rgba(44, 47, 56, 0.9); /* Semi-transparent background */
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* Shadow effect */
+    font-size: 1.1rem;
+    transition: all 0.4s ease-in-out;
+}
+
+/* Hover Effect for Game Container */
+.game-container:hover {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* Increase shadow on hover */
+}
+
+/* Board Container */
+.board-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+}
+
+/* Board Styling */
+.board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr); /* 8 columns for the board */
+    grid-template-rows: repeat(8, 1fr); /* 8 rows for the board */
+    width: 100%;
+    max-width: 480px;
+    max-height: 480px;
+    border: 3px solid #444; /* Border for the board */
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 1; /* Maintain square aspect ratio */
+    background: #161b22; /* Dark background */
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6); /* Inner shadow */
+}
+
+/* Square Styling */
+.square {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease-in-out;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Odd Squares Styling */
+.square:nth-child(odd) {
+    background: #2c2f38; /* Darker color for odd squares */
+}
+
+/* Even Squares Styling */
+.square:nth-child(even) {
+    background: #23272a; /* Lighter color for even squares */
+}
+
+/* Hover Effect for Squares */
+.square:hover {
+    background: #3d4149; /* Change background color on hover */
+}
+
+/* Button Styling */
+.button {
+    position: absolute; /* Absolute positioning for button */
+    top: 10px; /* 10px from the top */
+    left: 10px; /* 10px from the left */
     padding: 10px 15px;
     font-size: 18px;
     color: white;
-    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+    background: linear-gradient(90deg, #ff416c, #ff4b2b); /* Gradient background */
     border: none;
     border-radius: 10px;
     cursor: pointer;
     font-weight: bold;
     letter-spacing: 1px;
     transition: all 0.3s ease-in-out;
-    z-index: 10; /* Butonun diğer öğelerin üstünde olmasını sağlar */
+    z-index: 10; /* Ensures button is on top of other elements */
 }
 
-        
-        /* Butona hover efekti */
-        .button:hover {
-            background: linear-gradient(90deg, #ff4b2b, #ff416c);
-            transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(255, 75, 43, 0.4);
-        }
+/* Hover Effect for Button */
+.button:hover {
+    background: linear-gradient(90deg, #ff4b2b, #ff416c); /* Reverse gradient on hover */
+    transform: scale(1.05); /* Slight scale increase */
+    box-shadow: 0 6px 15px rgba(255, 75, 43, 0.4); /* Shadow effect */
+}
 
-/* Siyah ve Beyaz Kareler */
+/* Black and White Squares */
 .square.black-square {
-    background: linear-gradient(135deg, #1a1a1a, #222);
+    background: linear-gradient(135deg, #1a1a1a, #222); /* Darker gradient for black square */
 }
 
 .square.white-square {
-    background: linear-gradient(135deg, #2c2f38, #3a3f4b);
+    background: linear-gradient(135deg, #2c2f38, #3a3f4b); /* Lighter gradient for white square */
 }
 
-/* Kare Hover Efekti */
+/* Square Hover Effect */
 .square:hover {
-    background: radial-gradient(circle, #ffd700 30%, #e6c300 100%);
+    background: radial-gradient(circle, #ffd700 30%, #e6c300 100%); /* Gold radial hover effect */
     cursor: pointer;
     transition: background 0.3s ease-in-out;
 }
 
-/* Taşlar */
+/* Pieces Styling */
 .white-piece, .black-piece {
     width: 75%;
     height: 75%;
@@ -237,39 +258,39 @@
     justify-content: center;
 }
 
-/* Taşlara Hover Efekti */
+/* Hover Effect for Pieces */
 .white-piece:hover, .black-piece:hover {
-    transform: scale(1.15);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+    transform: scale(1.15); /* Slight scale increase on hover */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5); /* Shadow effect */
 }
 
-/* Beyaz Taş */
+/* White Piece Styling */
 .white-piece {
-    background: radial-gradient(circle, #fff 40%, #eaeaea 100%);
+    background: radial-gradient(circle, #fff 40%, #eaeaea 100%); /* White gradient */
     border: 3px solid #bbb;
 }
 
-/* Siyah Taş */
+/* Black Piece Styling */
 .black-piece {
-    background: radial-gradient(circle, #222 40%, #111 100%);
+    background: radial-gradient(circle, #222 40%, #111 100%); /* Dark gradient */
     border: 3px solid #444;
 }
 
-/* Hareket Vurgulama */
+/* Highlight Move Styling */
 .highlight {
-    background: radial-gradient(circle, rgba(255, 255, 0, 0.7) 40%, rgba(255, 215, 0, 0.4) 100%);
-    animation: pulse 1s infinite alternate;
+    background: radial-gradient(circle, rgba(255, 255, 0, 0.7) 40%, rgba(255, 215, 0, 0.4) 100%); /* Yellow highlight */
+    animation: pulse 1s infinite alternate; /* Pulsing effect */
 }
 
-/* Yenebilir Taş Vurgulama */
+/* Highlight Capture Styling */
 .highlight-capture {
-    background: radial-gradient(circle, rgba(255, 0, 0, 0.7) 40%, rgba(200, 0, 0, 0.5) 100%);
-    animation: pulse 1s infinite alternate;
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.7) 40%, rgba(200, 0, 0, 0.5) 100%); /* Red highlight for capture */
+    animation: pulse 1s infinite alternate; /* Pulsing effect */
 }
 
-/* Kraliçe Taşı */
+/* Queen Piece Styling */
 .queen {
-    border: 4px solid gold;
+    border: 4px solid gold; /* Gold border for queen piece */
     width: 75%;
     height: 75%;
     font-size: 22px;
@@ -278,14 +299,16 @@
     justify-content: center;
     color: gold;
     font-weight: bold;
-    text-shadow: 1px 1px 5px rgba(255, 215, 0, 0.7);
+    text-shadow: 1px 1px 5px rgba(255, 215, 0, 0.7); /* Glowing text effect */
 }
 
-/* Hafif Parlama Efekti */
+/* Light Pulse Animation */
 @keyframes pulse {
     0% { transform: scale(1); }
     100% { transform: scale(1.1); }
 }
+
+/* Responsive Design for Small Screens */
 @media screen and (max-width: 600px) {
     .game-container {
         width: 95%;
@@ -312,42 +335,42 @@
         width: 90%;
         max-width: 360px;
         max-height: 3460px;
-        aspect-ratio: 1; /* Tahtanın oranını koru */
+        aspect-ratio: 1; /* Keep board ratio intact */
         border-radius: 8px;
         border: 2px solid #555;
     }
 
     .square {
-        transition: background-color 0.3s ease, transform 0.2s ease;
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth background and scaling */
     }
 
     .square:hover {
-        transform: scale(1.05);
+        transform: scale(1.05); /* Slightly enlarge on hover */
     }
 
     .white-piece, .black-piece {
-        width: 70%; /* Daha küçük taşlar */
+        width: 70%; /* Smaller pieces for small screens */
         height: 70%;
     }
 
     .queen {
-        width: 70%;
+        width: 70%; /* Smaller queen */
         height: 70%;
         font-size: 18px;
-        text-shadow: 1px 1px 4px rgba(255, 215, 0, 0.5);
+        text-shadow: 1px 1px 4px rgba(255, 215, 0, 0.5); /* Adjusted text shadow */
     }
 }
 
-
     </style>
     <style id="mainMenuStyles">
-  * {
+ * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
 }
 
+/* Body Styling: Centers content, applies background gradient */
 body {
     display: flex;
     justify-content: center;
@@ -357,7 +380,7 @@ body {
     animation: gradientBG 6s infinite alternate;
 }
 
-/* Arkaplan animasyonu */
+/* Background Animation */
 @keyframes gradientBG {
     0% {
         background: linear-gradient(135deg, #000000, #16213E);
@@ -367,11 +390,12 @@ body {
     }
 }
 
+/* Hide the game container by default */
 .game-container {
     display: none;
 }
 
-/* Oyun giriş ekranı */
+/* Game container for the main screen */
 .container {
     text-align: center;
     background: rgba(255, 255, 255, 0.12);
@@ -385,7 +409,7 @@ body {
     overflow: hidden;
 }
 
-/* Container içine hafif ışık yansımaları */
+/* Light reflections inside the container */
 .container::before {
     content: "";
     position: absolute;
@@ -397,13 +421,13 @@ body {
     transform: rotate(25deg);
 }
 
-/* Container hover efekti */
+/* Hover effect for the container */
 .container:hover {
     transform: scale(1.05);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
-/* Input alanları */
+/* Styling for the input fields */
 input {
     width: 100%;
     padding: 12px;
@@ -418,13 +442,13 @@ input {
     transition: all 0.3s ease-in-out;
 }
 
-/* Input'a odaklanınca efekt */
+/* Focus effect on input fields */
 input:focus {
     background: rgba(255, 255, 255, 0.3);
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
-/* Butonlar */
+/* Button styling */
 button {
     margin-top: 15px;
     padding: 12px 25px;
@@ -440,7 +464,7 @@ button {
     overflow: hidden;
 }
 
-/* Butona ışıklı hover efekti */
+/* Light effect on button hover */
 button::before {
     content: "";
     position: absolute;
@@ -453,29 +477,30 @@ button::before {
     transition: all 0.4s ease-in-out;
 }
 
+/* Button hover animation */
 button:hover::before {
     top: 0;
     left: 0;
 }
 
+/* Button hover effect */
 button:hover {
     background: linear-gradient(90deg, #ff4b2b, #ff416c);
     transform: scale(1.1);
     box-shadow: 0 5px 15px rgba(255, 75, 43, 0.5);
 }
 
-/* Butona tıklama efekti */
+/* Button active (pressed) effect */
 button:active {
     transform: scale(0.95);
 }
 
+/* Active class to show elements */
+.active {
+    display: block;
+}
 
-
-        .active {
-            display: block;
-        }
-
-/* Başlık */
+/* Heading styling */
 h1 {
     margin-bottom: 20px;
     color: #ecf0f1;
@@ -485,7 +510,7 @@ h1 {
     text-shadow: 2px 2px 10px rgba(255, 255, 255, 0.2);
 }
 
-/* Oyun Listesi */
+/* Styling for game list */
 .game-list {
     width: 100%;
     margin: 10px auto;
@@ -501,11 +526,13 @@ h1 {
     transition: all 0.3s ease-in-out;
 }
 
+/* Hover effect for the game list */
 .game-list:hover {
     border-color: rgba(255, 255, 255, 0.5);
     transform: scale(1.02);
 }
 
+/* Styling for each game list item */
 .game-list div {
     padding: 12px;
     margin: 5px 0;
@@ -514,11 +541,12 @@ h1 {
     border-radius: 5px;
 }
 
+/* Hover effect for each game list item */
 .game-list div:hover {
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* Buton Stilleri */
+/* Button styles (repeated) */
 button {
     padding: 12px 20px;
     font-size: 16px;
@@ -532,6 +560,7 @@ button {
     overflow: hidden;
 }
 
+/* Button hover effect (repeated) */
 button::before {
     content: "";
     position: absolute;
@@ -544,21 +573,24 @@ button::before {
     transition: all 0.4s ease-in-out;
 }
 
+/* Hover effect on buttons (repeated) */
 button:hover::before {
     top: 0;
     left: 0;
 }
 
+/* Button hover effect (repeated) */
 button:hover {
     transform: scale(1.1);
     box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
 }
 
+/* Button active effect (repeated) */
 button:active {
     transform: scale(0.95);
 }
 
-/* 🔄 Yenile Butonu */
+/* Refresh button */
 .game-refresh-btn {
     background: linear-gradient(90deg, #ffa500, #ff7700);
 }
@@ -566,7 +598,7 @@ button:active {
     background: linear-gradient(90deg, #ff7700, #ffa500);
 }
 
-/* 🎮 Oyuna Katıl Butonu */
+/* Join game button */
 .game-join-btn {
     background: linear-gradient(90deg, #008CBA, #005f7f);
 }
@@ -574,7 +606,7 @@ button:active {
     background: linear-gradient(90deg, #005f7f, #008CBA);
 }
 
-/* ⬅ Geri Butonu */
+/* Back button */
 .game-back-btn {
     background: linear-gradient(90deg, #f44336, #c73022);
 }
@@ -582,7 +614,7 @@ button:active {
     background: linear-gradient(90deg, #c73022, #f44336);
 }
 
-/* ⚙ Oyun Ayarları Butonu */
+/* Game settings button */
 .game-settings-btn {
     background: linear-gradient(90deg, #ffa500, #cc7a00);
 }
@@ -590,7 +622,7 @@ button:active {
     background: linear-gradient(90deg, #cc7a00, #ffa500);
 }
 
-/* 🚀 Başlat Butonu */
+/* Start game button */
 .game-start-btn {
     background: linear-gradient(90deg, #4CAF50, #3d8b40);
 }
@@ -598,7 +630,7 @@ button:active {
     background: linear-gradient(90deg, #3d8b40, #4CAF50);
 }
 
-/* Taraf Seçim Alanı */
+/* Side selection area (for team selection) */
 .side-selection {
     display: flex;
     align-items: center;
@@ -614,6 +646,7 @@ button:active {
     font-size: 20px;
 }
 
+/* Dropdown selection styling */
 .side-selection select {
     padding: 8px 12px;
     font-size: 16px;
@@ -627,15 +660,17 @@ button:active {
     backdrop-filter: blur(6px);
 }
 
+/* Hover effect on dropdown */
 .side-selection select:hover {
     border-color: #fff;
 }
 
+/* Focus effect on dropdown */
 .side-selection select:focus {
     border-color: #ffcc00;
 }
 
-/* Seçilen Oda */
+/* Selected room styling */
 .selected-room {
     background: linear-gradient(90deg, #4CAF50, #3d8b40);
     color: white;
@@ -644,306 +679,330 @@ button:active {
     padding: 8px;
 }
 
-
     </style>
 </head>
 <body>
-
+    
+    <!-- Main Menu -->
     <div class="container active" id="menu">
         <h1>Checkers</h1>
-        <button class="button" onclick="switchMenu('offlineMenu')">Ofline</button>
+        <button class="button" onclick="switchMenu('offlineMenu')">Offline</button>
         <button class="button" onclick="switchMenu('onlineMenu')">Online</button>
-        <button class="button" onclick="switchMenu('settingsMenu')">Ayarlar</button>
-        <button class="button" onclick="exitGame()">Çıkış</button>
+        <button class="button" onclick="switchMenu('settingsMenu')">Settings</button>
+        <button class="button" onclick="exitGame()">Exit</button>
     </div>
 
+    <!-- Offline Mode Menu -->
     <div class="container" id="offlineMenu">
-        <h1>Oyun Modu Seç</h1>
-        <button class="button" onclick="playWithBot()">Bota Karşı</button>
-        <button class="button" onclick="playTwoPlayer()">İki Kişilik</button>
-        <button class="button" onclick="switchMenu('menu')">Geri</button>
+        <h1>Select Game Mode</h1>
+        <button class="button" onclick="playWithBot()">Against Bot</button>
+        <button class="button" onclick="playTwoPlayer()">Two Player</button>
+        <button class="button" onclick="switchMenu('menu')">Back</button>
     </div>
 
+    <!-- Online Mode Menu -->
     <div class="container" id="onlineMenu">
-        <h1>Online Oyun</h1>
-        <button class="button" onclick="switchMenu('quickMatchMenu')">Hızlı Maç</button>
-        <button class="button" onclick="switchMenu('gameListMenu')">Oyun Listesi</button>
-        <button class="button" onclick="switchMenu('createGameMenu')">Oyun Oluştur</button>
-        <button class="button" onclick="switchMenu('menu')">Geri</button>
+        <h1>Online Game</h1>
+        <button class="button" onclick="switchMenu('quickMatchMenu')">Quick Match</button>
+        <button class="button" onclick="switchMenu('gameListMenu')">Game List</button>
+        <button class="button" onclick="switchMenu('createGameMenu')">Create Game</button>
+        <button class="button" onclick="switchMenu('menu')">Back</button>
     </div>
     
+    <!-- Quick Match Menu -->
     <div class="container" id="quickMatchMenu">
-        <h1>Hızlı Maç</h1>
-        <button class="button" onclick="quickMatch()">Maç Bul</button>
-        <button class="button" onclick="switchMenu('onlineMenu')">Geri</button>
+        <h1>Quick Match</h1>
+        <button class="button" onclick="quickMatch()">Find Match</button>
+        <button class="button" onclick="switchMenu('onlineMenu')">Back</button>
     </div>
     
+    <!-- Game List Menu -->
     <div class="container" id="gameListMenu">
-        <h1>Oyun Listesi</h1>
+        <h1>Game List</h1>
         
         <div id="gameListContainer" class="game-list">
-            <!-- Oyunlar buraya eklenecek -->
+            <!-- Available games will be listed here -->
         </div>
         
         <div class="button-container">
-            <button class="game-refresh-btn" onclick="refreshGameList()">🔄 Yenile</button>
-            <button class="game-join-btn" onclick="joinGameFromList()">🎮 Oyuna Katıl</button>
-            <button class="game-back-btn" onclick="switchMenu('onlineMenu')">⬅ Geri</button>
+            <button class="game-refresh-btn" onclick="refreshGameList()">🔄 Refresh</button>
+            <button class="game-join-btn" onclick="joinGameFromList()">🎮 Join Game</button>
+            <button class="game-back-btn" onclick="switchMenu('onlineMenu')">⬅ Back</button>
         </div>
     </div>       
     
+    <!-- Create Game Menu -->
     <div class="container" id="createGameMenu">
-        <h1>Oyun Oluştur</h1>
+        <h1>Create Game</h1>
     
         <div class="side-selection">
-            <label for="side">Tarafını Seç:</label>
+            <label for="side">Choose Your Side:</label>
             <select id="side">
-                <option value="white">⚪ Beyaz</option>
-                <option value="black">⚫ Siyah</option>
+                <option value="white">⚪ White</option>
+                <option value="black">⚫ Black</option>
             </select>
         </div>
     
         <div class="button-container">
-            <button class="game-start-btn" onclick="startNewGame()">🚀 Başlat</button>
-            <button class="game-back-btn" onclick="switchMenu('onlineMenu')">⬅ Geri</button>
+            <button class="game-start-btn" onclick="startNewGame()">🚀 Start</button>
+            <button class="game-back-btn" onclick="switchMenu('onlineMenu')">⬅ Back</button>
         </div>
     </div>    
     
+    <!-- Settings Menu -->
     <div class="container" id="settingsMenu">
-        <h1>Ayarlar</h1>
-        <button class="button" onclick="adjustSound()">Ses Ayarları</button>
-        <button class="button" onclick="adjustGraphics()">Grafik Ayarları</button>
-        <button class="button" onclick="switchMenu('menu')">Geri</button>
+        <h1>Settings</h1>
+        <button class="button" onclick="adjustSound()">Sound Settings</button>
+        <button class="button" onclick="adjustGraphics()">Graphics Settings</button>
+        <button class="button" onclick="switchMenu('menu')">Back</button>
     </div>
 
+    <!-- Game Board Container -->
     <div class="game-container">
-        <button class="button" onclick="switchMenuFromGameContainer()">Geri</button>
+        <button class="button" onclick="switchMenuFromGameContainer()">Back</button>
         <div class="board-container">
-        <div id="winner-display"></div>
-        <div class="board" id="board"></div>
+            <div id="winner-display"></div>
+            <div class="board" id="board"></div>
         </div>
     </div>
 
-    <script id="MainScripts">
+    <!-- JavaScript Files -->
+    <script>
         document.getElementById('checkerStyles').disabled = true;
-        let gameMode='offline';
-        let yourColor;
-        let selectedRoomId;
+let gameMode = 'offline'; // Default game mode set to offline
+let yourColor; // Variable to store the player's color
+let selectedRoomId; // Variable to store the selected room ID
 
-        function switchMenu(menuId) {
-            if (menuId==='gameListMenu' || menuId==='quickMatchMenu') {
-                refreshGameList();
-            }
-            document.querySelectorAll('.container').forEach(container => container.classList.remove('active'));
-            document.getElementById(menuId).classList.add('active');
-        }
+// Switches between different menus and refreshes the game list when needed
+function switchMenu(menuId) {
+    if (menuId === 'gameListMenu' || menuId === 'quickMatchMenu') {
+        refreshGameList(); // Refresh the list of rooms if in the game or quick match menu
+    }
+    // Remove active class from all containers and add it to the selected menu
+    document.querySelectorAll('.container').forEach(container => container.classList.remove('active'));
+    document.getElementById(menuId).classList.add('active');
+}
 
-        function switchMenuFromGameContainer(){
-            document.getElementById('mainMenuStyles').disabled = false;
-            document.getElementById('checkerStyles').disabled = true;
-        }
+// Handles switching from the game container back to the main menu
+function switchMenuFromGameContainer() {
+    if (gameMode === 'online') {
+        leaveRoom(); // Leave the room if the game mode is online
+    }
+    document.getElementById('mainMenuStyles').disabled = false;
+    document.getElementById('checkerStyles').disabled = true;
+}
 
-        function playWithBot() {
-            alert("Bota karşı oyun modu geliştiriliyor!");
-        }
+// Placeholder function for playing against a bot (currently under development)
+function playWithBot() {
+    alert("Bota karşı oyun modu geliştiriliyor!"); // Game mode against the bot is under development!
+}
 
-        function playTwoPlayer() {
-            gameMode='offline';
-            document.getElementById('mainMenuStyles').disabled = true;
-            document.getElementById('checkerStyles').disabled = false;
-            resetGame('white');
-        }
+// Starts a two-player offline game
+function playTwoPlayer() {
+    gameMode = 'offline'; // Set game mode to offline
+    document.getElementById('mainMenuStyles').disabled = true;
+    document.getElementById('checkerStyles').disabled = false;
+    resetGame('white'); // Reset the game with the white player starting
+}
 
-        async function quickMatch() {
-    await getRoomList();
-    gameMode = 'online';
+// Initiates a quick match by checking the available rooms and joining one
+async function quickMatch() {
+    await getRoomList(); // Fetch the list of available rooms
+    gameMode = 'online'; // Set game mode to online
 
     if (activeRooms.length === 0) {
-        alert('Boş oda yok');
+        alert('Boş oda yok'); // If no available rooms, show an alert
         return;
     }
 
     for (let i = 0; i < activeRooms.length; i++) {
-    selectedRoomId = activeRooms[i]['roomId']; // roomId zaten string olduğu için direkt kullanıyoruz.
+        selectedRoomId = activeRooms[i]['roomId']; // Use the roomId directly as it’s already a string
 
-    console.log("Odaya bağlanmaya çalışılıyor, roomId:", selectedRoomId);
+        console.log("Odaya bağlanmaya çalışılıyor, roomId:", selectedRoomId);
 
-    try {
-        yourColor=activeRooms[i]['nextColor'];
+        try {
+            yourColor = activeRooms[i]['nextColor']; // Get the next available color for the player
 
-        if (joinGame(selectedRoomId, yourColor)) {
-            console.log(`Başarıyla ${selectedRoomId} odasına katıldın!`);
-            document.getElementById('mainMenuStyles').disabled = true;
-            document.getElementById('checkerStyles').disabled = false;
-            resetGame(yourColor);
-            return; // Başarıyla katıldıysa fonksiyondan çık
-        } else {
-            console.log(`joinGame başarısız oldu: roomId=${selectedRoomId}, color=${yourColor}`);
+            if (joinGame(selectedRoomId, yourColor)) {
+                console.log(`Başarıyla ${selectedRoomId} odasına katıldın!`); // Successfully joined the room
+                document.getElementById('mainMenuStyles').disabled = true;
+                document.getElementById('checkerStyles').disabled = false;
+                resetGame(yourColor); // Reset the game with the assigned color
+                return; // Exit the loop once the game starts
+            } else {
+                console.log(`joinGame başarısız oldu: roomId=${selectedRoomId}, color=${yourColor}`);
+            }
+        } catch (error) {
+            console.error(`Renk alınırken hata oluştu: ${error}`); // Handle any errors when fetching the color
         }
-    } catch (error) {
-        console.error(`Renk alınırken hata oluştu: ${error}`);
     }
 }
 
+// Starts a new game by creating a random room and joining with a selected color
+function startNewGame() {
+    gameMode = 'online'; // Set game mode to online
+    yourColor = document.getElementById("side").value; // Get the selected color from the dropdown
+    let roomId = Math.random().toString(36).substr(2, 9); // Generate a random room ID
+    console.log("Seçilen taraf:", yourColor);
+    joinGame(roomId, yourColor); // Join the new game with the generated room ID
+    document.getElementById('mainMenuStyles').disabled = true;
+    document.getElementById('checkerStyles').disabled = false;
+    resetGame(yourColor); // Reset the game with the selected color
 }
 
-        function startNewGame() {
-        gameMode='online';
-        yourColor = document.getElementById("side").value;
-        let roomId = Math.random().toString(36).substr(2, 9); // Rastgele bir oda ID'si oluştur
-        console.log("Seçilen taraf:", yourColor);
-        joinGame(roomId,yourColor);
-        document.getElementById('mainMenuStyles').disabled = true;
-        document.getElementById('checkerStyles').disabled = false;
-        resetGame(yourColor);
+// Joins an existing game from the list of available rooms
+function joinGameFromList() {
+    gameMode = 'online'; // Set game mode to online
+    let roomId = selectedRoomId; // Use the selected room ID
+    console.log("Seçilen taraf:", yourColor);
+    joinGame(roomId, yourColor); // Join the selected game with the assigned color
+    document.getElementById('mainMenuStyles').disabled = true;
+    document.getElementById('checkerStyles').disabled = false;
+    resetGame(yourColor); // Reset the game with the selected color
+}
 
-        }
+// Placeholder function for adjusting sound settings
+function adjustSound() {
+    alert("Ses ayarları açılıyor!"); // Sound settings are opening!
+}
 
-        function joinGameFromList() {
-        gameMode='online';
-        let roomId = selectedRoomId; 
-        console.log("Seçilen taraf:", yourColor);
-        joinGame(roomId,yourColor);
-        document.getElementById('mainMenuStyles').disabled = true;
-        document.getElementById('checkerStyles').disabled = false;
-        resetGame(yourColor);
-        }
+// Placeholder function for adjusting graphics settings
+function adjustGraphics() {
+    alert("Grafik ayarları açılıyor!"); // Graphics settings are opening!
+}
 
-        function adjustSound() {
-            alert("Ses ayarları açılıyor!");
-        }
+// Placeholder function for exiting the game
+function exitGame() {
+    alert("Oyundan çıkılıyor!"); // Exiting the game!
+}
 
-        function adjustGraphics() {
-            alert("Grafik ayarları açılıyor!");
-        }
+// Refreshes the list of available rooms
+function refreshGameList() {
+    getRoomList(); // Fetch the list of available rooms
+}
 
-        function exitGame() {
-
-            alert("Oyundan çıkılıyor!");
-        }
-
-        function refreshGameList() {
-            getRoomList();
-        }
-
-        function updateGameListUI() {
+// Updates the UI with the list of active game rooms
+function updateGameListUI() {
     const gameListContainer = document.getElementById("gameListContainer");
-    gameListContainer.innerHTML = ""; // Önce listeyi temizle
+    gameListContainer.innerHTML = ""; // Clear the current list
 
+    // Iterate through the active rooms and create UI elements for each
     activeRooms.forEach(room => {
         const roomDiv = document.createElement("div");
-        roomDiv.classList.add("game-room"); // CSS için sınıf ekleyebilirsin
-        roomDiv.textContent = room['roomId']; // Oda adını yaz
+        roomDiv.classList.add("game-room"); // Add a CSS class for styling
+        roomDiv.textContent = room['roomId']; // Set the room name as text
 
-        // Odaya tıklayınca seçme özelliği ekleyelim
+        // Add a click event listener to select the room when clicked
         roomDiv.addEventListener("click", () => selectFromList(room['roomId'], roomDiv));
 
         gameListContainer.appendChild(roomDiv);
     });
 }
 
-        function selectFromList(roomId, roomElement) {
-    // Önce eski seçili olanı temizle
+// Selects a room from the game list and updates the UI
+function selectFromList(roomId, roomElement) {
+    // Remove the 'selected-room' class from all rooms
     document.querySelectorAll(".game-room").forEach(div => {
         div.classList.remove("selected-room");
     });
 
-    // Yeni seçili olanı güncelle
+    // Update the selected room and fetch the color
     selectedRoomId = roomId;
-    getColor();
-    roomElement.classList.add("selected-room");
+    getColor(); // Get the color of the player for this room
+    roomElement.classList.add("selected-room"); // Add the selected class to the clicked room
 
     console.log(`Seçilen oda: ${selectedRoomId}`);
 }
 
     </script>
+    <script>
+        const board = document.getElementById("board");
 
-    <script id="boardCreater">
-    const board = document.getElementById("board");
+// Function to create the board
+function createBoard(color) {
+    const boardFragment = document.createDocumentFragment(); // Using DocumentFragment for performance optimization
+    const boardArray = []; // Array to hold the squares of the board
 
-    // Tahtayı oluştur
-    function createBoard(color) {
-const boardFragment = document.createDocumentFragment(); // Performans için DocumentFragment kullan
-const boardArray = []; // Tahtayı tutmak için dizi
+    // If the color is 'white', set up the board for a white player's perspective
+    if (color === 'white') {
 
-if (color==='white') {
+        // Loop through each row and column to create the squares
+        for (let row = 1; row <= 8; row++) {
+            for (let col = 1; col <= 8; col++) {
+                const square = document.createElement("div"); // Create a new square div
+                square.dataset.row = row; // Set row number as data attribute
+                square.dataset.col = col; // Set column number as data attribute
+                square.classList.add("square"); // Add base "square" class to each square
 
-for (let row = 1; row <= 8; row++) {
-    for (let col = 1; col <= 8; col++) {
-        const square = document.createElement("div");
-        square.dataset.row = row;
-        square.dataset.col = col;
-        square.classList.add("square"); // Her kare için temel "square" sınıfı
+                // Alternate the square colors based on the row and column sum
+                if ((row + col) % 2 === 0) {
+                    square.classList.add("white-square"); // White square for even row+col sum
+                } else {
+                    square.classList.add("black-square"); // Black square for odd row+col sum
 
-        // Alternatif kare rengi (satır ve sütun toplamına göre siyah/beyaz)
-        if ((row + col) % 2 === 0) {
-            square.classList.add("white-square");
-        } else {
-            square.classList.add("black-square");
+                    // Add pieces on black squares (positioned for checkers)
+                    if (row < 4) { // Add black pieces to the first three rows
+                        const piece = document.createElement("div");
+                        piece.classList.add("black-piece"); // Class for black piece
+                        square.appendChild(piece); // Append the piece to the square
+                    } else if (row > 5) { // Add white pieces to the last three rows
+                        const piece = document.createElement("div");
+                        piece.classList.add("white-piece"); // Class for white piece
+                        square.appendChild(piece); // Append the piece to the square
+                    }
+                }
 
-            // Siyah karelere taşları yerleştir
-            if (row < 4) {
-                    const piece = document.createElement("div");
-                    piece.classList.add("black-piece");
-                    square.appendChild(piece);
-                } else if (row > 5) {
-                    const piece = document.createElement("div");
-                    piece.classList.add("white-piece");
-                    square.appendChild(piece);
+                boardFragment.appendChild(square); // Append the square to the fragment
+                boardArray.push(square); // Add the square to the board array
             }
         }
 
-        boardFragment.appendChild(square); // Kareyi fragment'e ekle
-        boardArray.push(square); // Kareyi tahtaya ekle
-    }
+    } else { // If the color is not 'white', set up the board for black player's perspective
 
-}
-}else {
-    for (let row = 8; row >= 1; row--) {
-    for (let col = 8; col >= 1; col--) {
-        const square = document.createElement("div");
-        square.dataset.row = row;
-        square.dataset.col = col;
-        square.classList.add("square"); // Her kare için temel "square" sınıfı
+        // Loop through each row and column to create the squares in reverse
+        for (let row = 8; row >= 1; row--) {
+            for (let col = 8; col >= 1; col--) {
+                const square = document.createElement("div"); // Create a new square div
+                square.dataset.row = row; // Set row number as data attribute
+                square.dataset.col = col; // Set column number as data attribute
+                square.classList.add("square"); // Add base "square" class to each square
 
-        // Alternatif kare rengi (satır ve sütun toplamına göre siyah/beyaz)
-        if ((row + col) % 2 === 0) {
-            square.classList.add("white-square");
-        } else {
-            square.classList.add("black-square");
+                // Alternate the square colors based on the row and column sum
+                if ((row + col) % 2 === 0) {
+                    square.classList.add("white-square"); // White square for even row+col sum
+                } else {
+                    square.classList.add("black-square"); // Black square for odd row+col sum
 
-            // Siyah karelere taşları yerleştir
-            if (row < 4) {
-                    const piece = document.createElement("div");
-                    piece.classList.add("black-piece");
-                    square.appendChild(piece);
-                } else if (row > 5) {
-                    const piece = document.createElement("div");
-                    piece.classList.add("white-piece");
-                    square.appendChild(piece);
+                    // Add pieces on black squares (positioned for checkers)
+                    if (row < 4) { // Add black pieces to the first three rows
+                        const piece = document.createElement("div");
+                        piece.classList.add("black-piece"); // Class for black piece
+                        square.appendChild(piece); // Append the piece to the square
+                    } else if (row > 5) { // Add white pieces to the last three rows
+                        const piece = document.createElement("div");
+                        piece.classList.add("white-piece"); // Class for white piece
+                        square.appendChild(piece); // Append the piece to the square
+                    }
+                }
+
+                boardFragment.appendChild(square); // Append the square to the fragment
+                boardArray.push(square); // Add the square to the board array
             }
         }
-
-        boardFragment.appendChild(square); // Kareyi fragment'e ekle
-        boardArray.push(square); // Kareyi tahtaya ekle
     }
 
-}
-}
-
-board.appendChild(boardFragment); // Fragment'i DOM'a tek seferde ekle
-return boardArray;
+    board.appendChild(boardFragment); // Append the fragment (with all squares) to the DOM in one go
+    return boardArray; // Return the array of squares
 }
 
     </script>
-
-    <script id="onlineCheckerCode">
-let selectedPiece = null;
+    <script>
+        let selectedPiece = null;
 let currentPlayer = "white";
 let whiteCapturedPieces = 0;
 let blackCapturedPieces = 0;
 
-
+// Check if the current player has any mandatory capture moves
 function hasMandatoryCapture() {
     if (!currentPlayer) {
         console.error("Error: currentPlayer is not defined.");
@@ -960,15 +1019,18 @@ function hasMandatoryCapture() {
 
         const isQueen = piece.classList.contains("queen");
 
+        // Ensure required capture functions are defined
         if (typeof hasMoreCaptures !== "function" || typeof hasMoreCapturesQueen !== "function") {
             console.error("Error: Required capture functions are missing.");
             return false;
         }
 
+        // Determine if the piece has mandatory capture (Queen or regular piece)
         return isQueen ? hasMoreCapturesQueen(piece.parentElement) : hasMoreCaptures(piece.parentElement);
     });
 }
 
+// Handle the removal of captured pieces
 function capturePiece(piece) {
     piece.remove();
     if (piece.classList.contains("white-piece")) {
@@ -981,6 +1043,7 @@ function capturePiece(piece) {
     checkWinner();
 }
 
+// Check if there is a winner based on captured pieces
 function checkWinner() {
     debugInfo(`Checking winner. White captured: ${whiteCapturedPieces}, Black captured: ${blackCapturedPieces}`);
     if (whiteCapturedPieces === 12) {
@@ -994,6 +1057,7 @@ function checkWinner() {
     }
 }
 
+// Display the winner's name on the screen
 function displayWinner(winner) {
     const winnerDisplay = document.getElementById("winner-display");
     if (winnerDisplay) {
@@ -1001,11 +1065,12 @@ function displayWinner(winner) {
     }
 }
 
+// Handle when a player clicks a square on the board
 function handleSquareClick(event) {
     let square = event.target;
     let piece = square.querySelector(".white-piece, .black-piece");
 
-    // Eğer bir taşın kendisine tıklanırsa, onun ebeveyn karesini al
+    // If a piece is clicked, get its parent square
     if (square.classList.contains("white-piece") || square.classList.contains("black-piece")) {
         piece = square;
         square = piece.parentElement;
@@ -1013,20 +1078,20 @@ function handleSquareClick(event) {
 
     debugInfo(`Square clicked. Target is: ${square}, Piece: ${piece}`);
 
-    // Eğer oyuncu kendi taşını seçiyorsa
+    // If the player selects their own piece
     if (piece && piece.classList.contains(`${currentPlayer}-piece`)) {
         if (selectedPiece) selectedPiece.classList.remove("selected");
         selectedPiece = piece;
         selectedPiece.classList.add("selected");
         debugInfo(`${currentPlayer} player selected a piece.`);
     } 
-    // Seçili taşı tekrar tıklarsa seçimi kaldır
+    // If the player deselects the selected piece
     else if (selectedPiece === piece) {
         selectedPiece.classList.remove("selected");
         selectedPiece = null;
         debugInfo("Selection cleared.");
     } 
-    // Eğer taş seçiliyse ve bir hamle yapılmak isteniyorsa
+    // If a move is attempted when a piece is selected
     else if (selectedPiece && !piece) {
         const selectedRow = parseInt(selectedPiece.parentElement.dataset.row);
         const selectedCol = parseInt(selectedPiece.parentElement.dataset.col);
@@ -1035,137 +1100,134 @@ function handleSquareClick(event) {
 
         debugInfo(`Attempting move. Selected: (${selectedRow}, ${selectedCol}), Target: (${targetRow}, ${targetCol})`);
 
-        // Eğer oyuncunun zorunlu taş yeme hamlesi varsa ve normal hareket yapmaya çalışıyorsa engelle
+        // Block normal moves if the player must capture a piece
         if (hasMandatoryCapture() && !isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
             && !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol)) {
             debugInfo("You must capture a piece if possible!");
             return;
         }
 
-        if (gameMode==='offline') {
-        // Queen taşını kontrol et
-        if (selectedPiece.classList.contains("queen")) {
-            // Queen'in hareketi (herhangi bir yönde birden fazla kare gitme)
-            if (
-                square.classList.contains("black-square") &&
-                isValidQueenMove(selectedRow, selectedCol, targetRow, targetCol) &&
-                !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) &&
-                !square.hasChildNodes()
-            ) {
-                movePiece(square, true);
-            } 
-            // Taş yeme hareketi (queen için de geçerli)
-            else if (
-                isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol)
-            ) {
-                handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
-            } 
-            // Geçersiz hamle
-            else {
-                debugInfo("Invalid move.");
-                clearSelection();
+        if (gameMode === 'offline') {
+            // Handle Queen's move (can move multiple squares in any direction)
+            if (selectedPiece.classList.contains("queen")) {
+                if (
+                    square.classList.contains("black-square") &&
+                    isValidQueenMove(selectedRow, selectedCol, targetRow, targetCol) &&
+                    !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) &&
+                    !square.hasChildNodes()
+                ) {
+                    movePiece(square, true);
+                } 
+                // Handle Queen's capture
+                else if (isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol)) {
+                    handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
+                } 
+                // Invalid move
+                else {
+                    debugInfo("Invalid move.");
+                    clearSelection();
+                }
+            } else {
+                // Handle normal piece moves
+                if (
+                    square.classList.contains("black-square") &&
+                    selectedPiece.classList.contains("white-piece") &&
+                    targetRow - selectedRow === -1 &&
+                    Math.abs(targetCol - selectedCol) === 1 &&
+                    !square.hasChildNodes()
+                ) {
+                    movePiece(square, true);
+                } else if (
+                    square.classList.contains("black-square") &&
+                    selectedPiece.classList.contains("black-piece") &&
+                    targetRow - selectedRow === 1 &&
+                    Math.abs(targetCol - selectedCol) === 1 &&
+                    !square.hasChildNodes()
+                ) {
+                    movePiece(square, true);
+                }
+                // Handle capture (diagonal 2 squares)
+                else if (
+                    Math.abs(targetRow - selectedRow) === 2 &&
+                    Math.abs(targetCol - selectedCol) === 2 &&
+                    isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
+                ) {
+                    handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
+                } 
+                // Invalid move
+                else {
+                    debugInfo("Invalid move.");
+                    clearSelection();
+                }
             }
-        } else {
-            // Normal hareket (diagonal 1 kare ilerleme)
-            if (
-                square.classList.contains("black-square") &&
-                selectedPiece.classList.contains("white-piece")&&
-                targetRow - selectedRow === -1 &&
-                Math.abs(targetCol - selectedCol) === 1 &&
-                !square.hasChildNodes()
-            ) {
-                movePiece(square, true);
-            } else if (
-                square.classList.contains("black-square") &&
-                selectedPiece.classList.contains("black-piece")&&
-                targetRow - selectedRow === 1 &&
-                Math.abs(targetCol - selectedCol) === 1 &&
-                !square.hasChildNodes()
-            ) {
-                movePiece(square, true);
-            }
-            // Taş yeme hareketi (diagonal 2 kare ilerleme)
-            else if (
-                Math.abs(targetRow - selectedRow) === 2 &&
-                Math.abs(targetCol - selectedCol) === 2 &&
-                isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
-            ) {
-                handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
-            } 
-            // Geçersiz hamle
-            else {
-                debugInfo("Invalid move.");
-                clearSelection();
-            }
-        }    
-    }else if (gameMode==='online') {
-        if (selectedPiece.classList.contains("queen")) {
-            // Queen'in hareketi (herhangi bir yönde birden fazla kare gitme)
-            if (
-                square.classList.contains("black-square") &&
-                selectedPiece.classList.contains(`${yourColor}-piece`) &&
-                isValidQueenMove(selectedRow, selectedCol, targetRow, targetCol) &&
-                !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) &&
-                !square.hasChildNodes()
-            ) {
-                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
-                movePiece(square, true);
-            } 
-            // Taş yeme hareketi (queen için de geçerli)
-            else if (
-                isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) &&
-                selectedPiece.classList.contains(`${yourColor}-piece`) 
-            ) {
-                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
-                handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
-            } 
-            // Geçersiz hamle
-            else {
-                debugInfo("Invalid move.");
-                clearSelection();
-            }
-        } else {
-            // Normal hareket (diagonal 1 kare ilerleme)
-            if (
-                square.classList.contains("black-square") &&
-                selectedPiece.classList.contains("white-piece")&&
-                selectedPiece.classList.contains(`${yourColor}-piece`) &&
-                targetRow - selectedRow === -1 &&
-                Math.abs(targetCol - selectedCol) === 1 &&
-                !square.hasChildNodes()
-            ) {
-                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
-                movePiece(square, true);
-            } else if (
-                square.classList.contains("black-square") &&
-                selectedPiece.classList.contains("black-piece")&&
-                selectedPiece.classList.contains(`${yourColor}-piece`) &&
-                targetRow - selectedRow === 1 &&
-                Math.abs(targetCol - selectedCol) === 1 &&
-                !square.hasChildNodes()
-            ) {
-                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
-                movePiece(square, true);
-            } 
-            // Taş yeme hareketi (diagonal 2 kare ilerleme)
-            else if (
-                selectedPiece.classList.contains(`${yourColor}-piece`) &&
-                Math.abs(targetRow - selectedRow) === 2 &&
-                Math.abs(targetCol - selectedCol) === 2 &&
-                isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
-            ) {
-                movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
-                handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
-            } 
-            // Geçersiz hamle
-            else {
-                debugInfo("Invalid move.");
-                clearSelection();
+        } else if (gameMode === 'online') {
+            // Handle online gameplay, Queen's move
+            if (selectedPiece.classList.contains("queen")) {
+                if (
+                    square.classList.contains("black-square") &&
+                    selectedPiece.classList.contains(`${yourColor}-piece`) &&
+                    isValidQueenMove(selectedRow, selectedCol, targetRow, targetCol) &&
+                    !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) &&
+                    !square.hasChildNodes()
+                ) {
+                    movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
+                    movePiece(square, true);
+                } 
+                // Handle online Queen's capture
+                else if (
+                    isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) &&
+                    selectedPiece.classList.contains(`${yourColor}-piece`)
+                ) {
+                    movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
+                    handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
+                } 
+                // Invalid move
+                else {
+                    debugInfo("Invalid move.");
+                    clearSelection();
+                }
+            } else {
+                // Handle online normal piece moves
+                if (
+                    square.classList.contains("black-square") &&
+                    selectedPiece.classList.contains("white-piece") &&
+                    selectedPiece.classList.contains(`${yourColor}-piece`) &&
+                    targetRow - selectedRow === -1 &&
+                    Math.abs(targetCol - selectedCol) === 1 &&
+                    !square.hasChildNodes()
+                ) {
+                    movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
+                    movePiece(square, true);
+                } else if (
+                    square.classList.contains("black-square") &&
+                    selectedPiece.classList.contains("black-piece") &&
+                    selectedPiece.classList.contains(`${yourColor}-piece`) &&
+                    targetRow - selectedRow === 1 &&
+                    Math.abs(targetCol - selectedCol) === 1 &&
+                    !square.hasChildNodes()
+                ) {
+                    movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
+                    movePiece(square, true);
+                } 
+                // Handle online capture
+                else if (
+                    selectedPiece.classList.contains(`${yourColor}-piece`) &&
+                    Math.abs(targetRow - selectedRow) === 2 &&
+                    Math.abs(targetCol - selectedCol) === 2 &&
+                    isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
+                ) {
+                    movePieceSocket(selectedRow, selectedCol, targetRow, targetCol);
+                    handleCapture(selectedRow, selectedCol, targetRow, targetCol, square);
+                } 
+                // Invalid move
+                else {
+                    debugInfo("Invalid move.");
+                    clearSelection();
+                }
             }
         }
     }
-    }       
-    // Eğer bir taş seçili değilse ve hareket yapılmak isteniyorsa
+    // If no piece is selected, move is attempted
     else {
         const selectedRow = parseInt(selectedPiece.parentElement.dataset.row);
         const selectedCol = parseInt(selectedPiece.parentElement.dataset.col);
@@ -1174,14 +1236,14 @@ function handleSquareClick(event) {
 
         debugInfo(`Attempting move. Selected: (${selectedRow}, ${selectedCol}), Target: (${targetRow}, ${targetCol})`);
 
-        // Eğer oyuncunun zorunlu taş yeme hamlesi varsa ve normal hareket yapmaya çalışıyorsa engelle
+        // Block normal moves if the player must capture a piece
         if (hasMandatoryCapture() && !isValidCapture(selectedRow, selectedCol, targetRow, targetCol)
             && !isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol)) {
             debugInfo("You must capture a piece if possible!");
             return;
         }
 
-        // Normal hareket (diagonal 1 kare ilerleme)
+        // Normal move (diagonal 1 square)
         if (
             square.classList.contains("black-square") &&
             !square.hasChildNodes()
@@ -1194,12 +1256,13 @@ function handleSquareClick(event) {
         }
     }
 }
-
 function handleOpponentMove(fromRow, fromCol, toRow, toCol) {
+    // Select the source and target squares based on the given coordinates
     const square = document.querySelector(`[data-row='${fromRow}'][data-col='${fromCol}']`);
     const squareTo = document.querySelector(`[data-row='${toRow}'][data-col='${toCol}']`);
     const piece = square ? square.querySelector(".white-piece, .black-piece") : null;
 
+    // If there is no piece in the source square, log an error and return
     if (!piece) {
         console.error("Invalid move: No piece at the source square.");
         return;
@@ -1207,6 +1270,7 @@ function handleOpponentMove(fromRow, fromCol, toRow, toCol) {
 
     debugInfo(`Opponent move: (${fromRow}, ${fromCol}) -> (${toRow}, ${toCol})`);
 
+    // If the selected piece is from the current player, allow it to be selected
     if (piece && piece.classList.contains(`${currentPlayer}-piece`)) {
         if (selectedPiece) selectedPiece.classList.remove("selected");
         selectedPiece = piece;
@@ -1214,68 +1278,75 @@ function handleOpponentMove(fromRow, fromCol, toRow, toCol) {
         debugInfo(`${currentPlayer} player selected a piece.`);
     }
 
-    // Queen taşını kontrol et
+    // Handle Queen piece movement
     if (selectedPiece.classList.contains("queen")) {
+        // Check if the move is valid for a Queen piece and it's not a capture move
         if (
             squareTo.classList.contains("black-square") &&
             isValidQueenMove(fromRow, fromCol, toRow, toCol) &&
             !isValidQueenCapture(fromRow, fromCol, toRow, toCol) &&
             !squareTo.hasChildNodes()
         ) {
-            movePiece(squareTo, true);
-        } else if (isValidQueenCapture(fromRow, fromCol, toRow, toCol)) {
-            handleCapture(fromRow, fromCol, toRow, toCol, squareTo);
+            movePiece(squareTo, true); // Move the Queen piece
+        } 
+        // If it's a valid capture move
+        else if (isValidQueenCapture(fromRow, fromCol, toRow, toCol)) {
+            handleCapture(fromRow, fromCol, toRow, toCol, squareTo); // Handle capture
         } else {
             debugInfo("Invalid move.");
-            clearSelection();
+            clearSelection(); // Clear selection if the move is invalid
         }
     } else {
-        // Normal hareket (diagonal 1 kare ilerleme)
+        // Handle normal piece movement (one diagonal square forward)
         if (
             squareTo.classList.contains("black-square") &&
             Math.abs(toRow - fromRow) === 1 &&
             Math.abs(toCol - fromCol) === 1 &&
             !squareTo.hasChildNodes()
         ) {
-            movePiece(squareTo, true);
+            movePiece(squareTo, true); // Move the piece
         } 
-        // Taş yeme hareketi (diagonal 2 kare ilerleme)
+        // Handle capture (two diagonal squares forward)
         else if (
             Math.abs(toRow - fromRow) === 2 &&
             Math.abs(toCol - fromCol) === 2 &&
             isValidCapture(fromRow, fromCol, toRow, toCol)
         ) {
-            handleCapture(fromRow, fromCol, toRow, toCol, squareTo);
+            handleCapture(fromRow, fromCol, toRow, toCol, squareTo); // Handle capture
         } else {
             debugInfo("Invalid move.");
-            clearSelection();
+            clearSelection(); // Clear selection if the move is invalid
         }
     }
 }
 
+// Check if the Queen's move is valid (diagonal, vertical, or horizontal)
 function isValidQueenMove(selectedRow, selectedCol, targetRow, targetCol) {
     const rowDiff = Math.abs(targetRow - selectedRow);
     const colDiff = Math.abs(targetCol - selectedCol);
     return rowDiff === colDiff || targetRow === selectedRow || targetCol === selectedCol;
 }
 
+// Check if the Queen can capture an opponent's piece
 function isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) {
     debugInfo(`Checking Queen capture from (${selectedRow}, ${selectedCol}) to (${targetRow}, ${targetCol})`);
     const rowDiff = targetRow - selectedRow;
     const colDiff = targetCol - selectedCol;
-    if (Math.abs(rowDiff) !== Math.abs(colDiff)) return false;
+    if (Math.abs(rowDiff) !== Math.abs(colDiff)) return false; // Not a valid diagonal move
     
+    // Determine the direction of movement
     const rowDirection = rowDiff > 0 ? 1 : -1;
     const colDirection = colDiff > 0 ? 1 : -1;
     let currentRow = selectedRow + rowDirection;
     let currentCol = selectedCol + colDirection;
     let capturedPiece = null, middleSquare = null;
-    
+
+    // Check all squares in the path for a captured piece
     while (currentRow !== targetRow && currentCol !== targetCol) {
         const currentSquare = document.querySelector(`[data-row='${currentRow}'][data-col='${currentCol}']`);
         const currentPiece = currentSquare?.querySelector(".white-piece, .black-piece");
         if (currentPiece) {
-            if (capturedPiece) return false; // İkinci bir taş varsa geçersiz
+            if (capturedPiece) return false; // Invalid if a second piece is encountered
             capturedPiece = currentPiece;
             middleSquare = currentSquare;
         }
@@ -1283,44 +1354,48 @@ function isValidQueenCapture(selectedRow, selectedCol, targetRow, targetCol) {
         currentCol += colDirection;
     }
     
+    // Validate if the captured piece is an opponent's and the target square is empty
     const targetSquare = document.querySelector(`[data-row='${targetRow}'][data-col='${targetCol}']`);
     if (capturedPiece && targetSquare && !targetSquare.querySelector(".white-piece, .black-piece")) {
-        return true;
+        return true; // Valid capture move
     }
-    return false;
+    return false; // Invalid capture move
 }
 
+// Capture an opponent's piece by removing it from the board
 function captureQueenPiece(capturedPiece) {
-    capturedPiece.remove(); // Taşı kaldır
+    capturedPiece.remove(); // Remove the captured piece
     if (capturedPiece.classList.contains("white-piece")) {
-        blackCapturedPieces++;
+        blackCapturedPieces++; // Increment the count for black pieces captured
         debugInfo(`Black player captured a white piece. Total captured: ${blackCapturedPieces}`);
     } else if (capturedPiece.classList.contains("black-piece")) {
-        whiteCapturedPieces++;
+        whiteCapturedPieces++; // Increment the count for white pieces captured
         debugInfo(`White player captured a black piece. Total captured: ${whiteCapturedPieces}`);
     }
-    checkWinner();
+    checkWinner(); // Check if there's a winner
 }
 
+// Move a piece to the target square
 function movePiece(targetSquare, switchTurn = true) {
     debugInfo(`Moving piece to square: ${targetSquare.dataset.row}, ${targetSquare.dataset.col}`);
-    targetSquare.appendChild(selectedPiece);
+    targetSquare.appendChild(selectedPiece); // Move the selected piece
     selectedPiece.classList.remove("selected");
 
-    // **Queen olma kontrolü**
+    // Check for promotion to Queen if the piece reaches the last row
     const targetRow = parseInt(targetSquare.dataset.row);
     if (
         (currentPlayer === "white" && targetRow === 1) ||
         (currentPlayer === "black" && targetRow === 8)
     ) {
-        selectedPiece.classList.add("queen"); // Queen sınıfını ekliyoruz
+        selectedPiece.classList.add("queen"); // Add the Queen class
         debugInfo(`${currentPlayer} piece became a queen!`);
     }
 
     selectedPiece = null;
-    if (switchTurn) switchPlayer();
+    if (switchTurn) switchPlayer(); // Switch turn if necessary
 }
 
+// Handle piece capture (non-Queen pieces)
 function handleCapture(selectedRow, selectedCol, targetRow, targetCol, targetSquare) {
     if (!selectedPiece.classList.contains("queen")) {
         const middleRow = (selectedRow + targetRow) / 2;
@@ -1330,22 +1405,25 @@ function handleCapture(selectedRow, selectedCol, targetRow, targetCol, targetSqu
 
         debugInfo(`Attempting capture. Middle square: (${middleRow}, ${middleCol}), Captured piece: ${capturedPiece}`);
 
+        // Validate if the piece can be captured
         if (capturedPiece && capturedPiece.classList.contains(`${currentPlayer === "white" ? "black" : "white"}-piece`)) {
-            capturePiece(capturedPiece);
-            movePiece(targetSquare, false);
+            capturePiece(capturedPiece); // Capture the opponent's piece
+            movePiece(targetSquare, false); // Move the selected piece
 
+            // If no more captures are possible, switch turn
             if (!hasMoreCaptures(targetSquare)) {
                 switchPlayer();
             } else {
                 debugInfo(`${currentPlayer} can capture again.`);
                 selectedPiece = targetSquare.querySelector(".white-piece, .black-piece");
-                selectedPiece.classList.add("selected");
+                selectedPiece.classList.add("selected"); // Keep the piece selected if another capture is possible
             }
         } else {
             debugInfo("Invalid capture attempt.");
-            clearSelection();
+            clearSelection(); // Clear selection if the capture is invalid
         }
     } else {
+        // Handle Queen capture logic (diagonal movement over multiple squares)
         let rowDirection = targetRow > selectedRow ? 1 : -1;
         let colDirection = targetCol > selectedCol ? 1 : -1;
         let row = selectedRow + rowDirection;
@@ -1353,6 +1431,7 @@ function handleCapture(selectedRow, selectedCol, targetRow, targetCol, targetSqu
         let capturedPiece = null;
         let middleSquare = null;
     
+        // Traverse the path to check for any captured piece
         while (row !== targetRow || col !== targetCol) {
             middleSquare = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
             if (middleSquare && middleSquare.hasChildNodes()) {
@@ -1363,12 +1442,13 @@ function handleCapture(selectedRow, selectedCol, targetRow, targetCol, targetSqu
             col += colDirection;
         }
     
+        // Validate if the captured piece is an opponent's and move the Queen
         if (capturedPiece && capturedPiece.classList.contains(`${currentPlayer === "white" ? "black" : "white"}-piece`)) {
-            captureQueenPiece(capturedPiece);
-    
-            // **Taşı hareket ettir**
-            movePiece(targetSquare, false);
+            captureQueenPiece(capturedPiece); // Capture the piece
 
+            movePiece(targetSquare, false); // Move the Queen piece
+
+            // If no further captures are possible, switch turn
             if (!hasMoreCapturesQueen(targetSquare)) {
                 switchPlayer();
             } else {
@@ -1379,25 +1459,22 @@ function handleCapture(selectedRow, selectedCol, targetRow, targetCol, targetSqu
             
         } else {
             debugInfo("Invalid queen capture attempt.");
-            clearSelection();
+            clearSelection(); // Clear selection if the capture is invalid
         }
     }
-    
-    
 }
-
 function isValidCapture(selectedRow, selectedCol, targetRow, targetCol) {
     debugInfo(`Starting isValidCapture function for selected square: (${selectedRow}, ${selectedCol}) and target square: (${targetRow}, ${targetCol})`);
 
-    // Orta kareyi tam sayı olarak hesapla (yuvarlama işlemi)
+    // Calculate the middle square (rounding down)
     const middleRow = Math.floor((selectedRow + targetRow) / 2);
     const middleCol = Math.floor((selectedCol + targetCol) / 2);
     debugInfo(`Calculated middle square: (${middleRow}, ${middleCol})`);
 
-    // Orta kareyi seç
+    // Select the middle square
     const middleSquare = document.querySelector(`[data-row='${middleRow}'][data-col='${middleCol}']`);
     
-    // Eğer ortada bir kare yoksa, geçerli bir taş alma hareketi değildir
+    // If there's no middle square, it's not a valid capture move
     if (!middleSquare) {
         debugInfo("Middle square not found. Invalid capture.");
         return false;
@@ -1405,7 +1482,7 @@ function isValidCapture(selectedRow, selectedCol, targetRow, targetCol) {
 
     debugInfo("Middle square found.");
 
-    // Ortadaki karede bir taş var mı kontrol et
+    // Check if there's a piece in the middle square
     const capturedPiece = middleSquare.querySelector(".white-piece, .black-piece");
     
     if (capturedPiece) {
@@ -1414,7 +1491,7 @@ function isValidCapture(selectedRow, selectedCol, targetRow, targetCol) {
         debugInfo("No captured piece found in the middle square.");
     }
 
-    // Eğer ortadaki karede taş varsa, taşın rakip oyuncuya ait olup olmadığını kontrol et
+    // If there is a piece in the middle, check if it belongs to the opponent
     const opponentPiece = capturedPiece && capturedPiece.classList.contains(`${currentPlayer === "white" ? "black" : "white"}-piece`);
     
     if (opponentPiece) {
@@ -1435,15 +1512,17 @@ function hasMoreCaptures(pieceSquare) {
     const col = parseInt(pieceSquare.dataset.col);
     
     if (isNaN(row) || isNaN(col)) {
-        console.error("Geçersiz satır veya sütun değeri:", row, col);
+        console.error("Invalid row or column value:", row, col);
         return false;
     }
 
+    // Define all possible directions for capturing
     const directions = [
         { row: -2, col: -2 }, { row: -2, col: 2 }, 
         { row: 2, col: -2 }, { row: 2, col: 2 }
     ];
 
+    // Check each direction to see if another capture is possible
     return directions.some(({ row: dr, col: dc }) => {
         const midRow = row + dr / 2;
         const midCol = col + dc / 2;
@@ -1453,14 +1532,14 @@ function hasMoreCaptures(pieceSquare) {
         const midSquare = document.querySelector(`[data-row='${midRow}'][data-col='${midCol}']`);
         const targetSquare = document.querySelector(`[data-row='${targetRow}'][data-col='${targetCol}']`);
 
-        if (!midSquare || !targetSquare) return false; // Oyun tahtasının dışına çıkmamak için
+        if (!midSquare || !targetSquare) return false; // Check if the move is within the bounds of the board
 
         const midPiece = midSquare.querySelector(".white-piece, .black-piece");
-        if (!midPiece) return false; // Arada taş yoksa, atlayamaz
+        if (!midPiece) return false; // If there's no piece to capture, the move is invalid
 
-        if (!midPiece.classList.contains(currentPlayer === "white" ? "black-piece" : "white-piece")) return false; // Yanlış taş mı?
+        if (!midPiece.classList.contains(currentPlayer === "white" ? "black-piece" : "white-piece")) return false; // Check if it's the opponent's piece
 
-        return targetSquare.children.length === 0; // Hedef kare boş olmalı
+        return targetSquare.children.length === 0; // Target square must be empty
     });
 }
 
@@ -1469,18 +1548,20 @@ function hasMoreCapturesQueen(pieceSquare) {
     const col = parseInt(pieceSquare.dataset.col);
     
     if (isNaN(row) || isNaN(col)) {
-        console.error("Geçersiz satır veya sütun değeri:", row, col);
+        console.error("Invalid row or column value:", row, col);
         return false;
     }
 
+    // Directions for capturing with a queen
     const directions = [
         { row: -1, col: -1 }, { row: -1, col: 1 }, 
         { row: 1, col: -1 }, { row: 1, col: 1 }
     ];
 
+    // Check each direction for possible captures
     return directions.some(({ row: dr, col: dc }) => {
         let step = 1;
-        let foundOpponent = false; // Rakip taşı bulduk mu?
+        let foundOpponent = false; // Flag to check if an opponent's piece is found
 
         while (true) {
             const midRow = row + dr * step;
@@ -1488,30 +1569,30 @@ function hasMoreCapturesQueen(pieceSquare) {
             const targetRow = row + dr * (step + 1);
             const targetCol = col + dc * (step + 1);
 
-            // Tahtanın dışına çıkıyorsa dur
+            // If out of bounds, stop
             if (midRow < 1 || midRow > 8 || midCol < 1 || midCol > 8) break;
             if (targetRow < 1 || targetRow > 8 || targetCol < 1 || targetCol > 8) break;
 
             const midSquare = document.querySelector(`[data-row='${midRow}'][data-col='${midCol}']`);
             const targetSquare = document.querySelector(`[data-row='${targetRow}'][data-col='${targetCol}']`);
 
-            if (!midSquare || !targetSquare) break; // Kare yoksa dur
+            if (!midSquare || !targetSquare) break; // Stop if a square is invalid
 
             const midPiece = midSquare.querySelector(".white-piece, .black-piece");
 
             if (midPiece) {
-                // Eğer daha önce rakip taş bulduysak ve yeni bir taş geldiyse, artık ilerleyemeyiz
+                // If an opponent piece has already been found, stop
                 if (foundOpponent) break;
 
-                // Eğer rakip taşsa, ileride boşluk olup olmadığını kontrol et
+                // If the piece is an opponent's, check if there is an empty space ahead
                 if (midPiece.classList.contains(currentPlayer === "white" ? "black-piece" : "white-piece")) {
-                    foundOpponent = true; // Rakip taş bulundu
+                    foundOpponent = true; // Found an opponent piece
                 } else {
-                    break; // Dost taşı gördüysek ilerleyemeyiz
+                    break; // Can't move if it's a friendly piece
                 }
             }
 
-            // Eğer rakip taşı bulduktan sonra ileride boş bir kare varsa, geçerli hamle
+            // If an opponent's piece is found and there is space ahead, capture is possible
             if (foundOpponent && targetSquare.children.length === 0) return true;
 
             step++;
@@ -1551,8 +1632,9 @@ document.addEventListener("DOMContentLoaded", () => {
     addSquareEventListeners();
 });
 
+
+
+
     </script>
-
-
 </body>
 </html>
