@@ -1,5 +1,7 @@
 This is an old project and does not describe my products.
 
+---
+
 # Checkers Game
 
 ![Checkers](https://img.shields.io/badge/Checkers-Game-brightgreen)
