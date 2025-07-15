@@ -64,7 +64,3 @@ Feel free to fork the project and make contributions. If you'd like to add featu
 
 ## License
 This project is open-source and available under the [MIT License](LICENSE).
-
-## Contact
-For questions or feedback, feel free to contact me via [email](mailto:your-email@example.com).
-
